@@ -7,7 +7,7 @@ pub struct Document {
     id: usize,
     #[serde(rename(deserialize = "type"))]
     doctype: String,
-    status: String,
+    status: Option<String>,
     login_id: usize,
     created_at: String,
     edited_at: String,
@@ -34,3 +34,21 @@ pub struct DocumentItem {
     total_price_net: isize,
     total_vat: isize,
 }
+
+#[cfg(test)]
+mod tests {
+    use std::fs::File;
+    use std::io::BufReader;
+    use crate::structs::Document;
+
+    #[test]
+    fn test_document() {
+        let file = File::open("examples/document_webhook.json").expect("Failed to read test data from file!");
+        let reader = BufReader::new(file);
+
+        let document: Document = serde_json::from_reader(reader).expect("Failed to parse as document!");
+
+        assert_eq!(document.doctype, "OFFER");
+    }
+
+    }
