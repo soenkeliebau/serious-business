@@ -5,4 +5,3 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-easybill-rs = {git = "https://github.com/soenkeliebau/easybill-rs.git", branch = "main"}
