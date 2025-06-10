@@ -2,25 +2,25 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Document {
-    customer_snapshot: Customer,
-    is_draft: bool,
-    id: usize,
+    pub customer_snapshot: Customer,
+    pub is_draft: bool,
+    pub id: usize,
     #[serde(rename(deserialize = "type"))]
-    doctype: String,
-    status: Option<String>,
-    login_id: usize,
-    created_at: String,
-    edited_at: String,
-    amount: isize,
-    amount_net: isize,
-    currency: String,
-    attachment_ids: Vec<isize>,
-    items: Vec<DocumentItem>,
+    pub doctype: String,
+    pub status: Option<String>,
+    pub login_id: usize,
+    pub created_at: String,
+    pub edited_at: String,
+    pub amount: isize,
+    pub amount_net: isize,
+    pub currency: String,
+    pub attachment_ids: Vec<isize>,
+    pub items: Vec<DocumentItem>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Customer {
-    company_name: String,
+    pub company_name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -39,7 +39,7 @@ pub struct DocumentItem {
 mod tests {
     use std::fs::File;
     use std::io::BufReader;
-    use crate::structs::Document;
+    use crate::easybill::structs::Document;
 
     #[test]
     fn test_document() {
