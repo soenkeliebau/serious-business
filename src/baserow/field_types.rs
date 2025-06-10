@@ -351,6 +351,38 @@ impl TableField {
             TableField::Ai { shared_fields, .. } => shared_fields.primary,
         }
     }
+
+    pub fn get_id(&self) -> usize {
+        match self {
+            TableField::Text { shared_fields, .. } => shared_fields.id,
+            TableField::LongText { shared_fields, .. } => shared_fields.id,
+            TableField::Url { shared_fields, .. } => shared_fields.id,
+            TableField::Email { shared_fields, .. } => shared_fields.id,
+            TableField::Number { shared_fields, .. } => shared_fields.id,
+            TableField::Rating { shared_fields, .. } => shared_fields.id,
+            TableField::Boolean { shared_fields, .. } => shared_fields.id,
+            TableField::Date { shared_fields, .. } => shared_fields.id,
+            TableField::LastModified { shared_fields, .. } => shared_fields.id,
+            TableField::LastModifiedBy { shared_fields, .. } => shared_fields.id,
+            TableField::CreatedOn { shared_fields, .. } => shared_fields.id,
+            TableField::CreatedBy { shared_fields, .. } => shared_fields.id,
+            TableField::Duration { shared_fields, .. } => shared_fields.id,
+            TableField::LinkRow { shared_fields, .. } => shared_fields.id,
+            TableField::File { shared_fields, .. } => shared_fields.id,
+            TableField::SingleSelect { shared_fields, .. } => shared_fields.id,
+            TableField::MultipleSelect { shared_fields, .. } => shared_fields.id,
+            TableField::PhoneNumber { shared_fields, .. } => shared_fields.id,
+            TableField::Formula { shared_fields, .. } => shared_fields.id,
+            TableField::Count { shared_fields, .. } => shared_fields.id,
+            TableField::Rollup { shared_fields, .. } => shared_fields.id,
+            TableField::Lookup { shared_fields, .. } => shared_fields.id,
+            TableField::MultipleCollaborators { shared_fields, .. } => shared_fields.id,
+            TableField::Uuid { shared_fields, .. } => shared_fields.id,
+            TableField::AutoNumber { shared_fields, .. } => shared_fields.id,
+            TableField::Password { shared_fields, .. } => shared_fields.id,
+            TableField::Ai { shared_fields, .. } => shared_fields.id,
+        }
+    }
 }
 
 #[cfg(test)]
