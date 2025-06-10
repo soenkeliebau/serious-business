@@ -22,29 +22,4 @@ impl From<crate::easybill::structs::Document> for BaserowOffer {
 
 #[cfg(test)]
 mod tests {
-    use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, USER_AGENT};
-    use crate::baserow::structs::BaserowOffer;
-
-    #[tokio::test]
-    async fn test_create() {
-        let offer = BaserowOffer{
-            easybill_id: 1234,
-            customer: "test".to_string(),
-            amount: "0.0".to_string(),
-            status: 1,
-        };
-        let request_url = "https://api.baserow.io/api/database/rows/table/568215/?user_field_names=true";
-
-        let client = reqwest::Client::new();
-        let mut headers = HeaderMap::new();
-        let response = client
-            .post(request_url)
-            .body(serde_json::to_string(&offer).unwrap())
-            .headers(headers)
-            .send()
-            .await.unwrap();
-
-        println!("{:?}", response);
-    }
-
 }
