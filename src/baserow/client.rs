@@ -1,22 +1,24 @@
 use crate::baserow::field_types::TableField;
-use crate::baserow::generated::offers;
-use crate::baserow::structs::BaserowOffer;
 use convert_case::{Case, Casing};
-use quote::{format_ident, quote};
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client as ReqwestClient;
 use serde::{Deserialize, Serialize};
+use serde::de::DeserializeOwned;
 
 static LIST_TABLES_URL: &str = "https://api.baserow.io/api/database/tables/all-tables/";
 static LIST_TABLE_FIELDS_URL: &str = "https://api.baserow.io/api/database/fields/table/";
 static CREATE_RECORD_URL: &str = "https://api.baserow.io/api/database/rows/table/";
+static LIST_RECORD_URL: &str = "https://api.baserow.io/api/database/rows/table/";
+
 struct Client {
     client: ReqwestClient,
 }
 
 pub trait BaserowObject {
+    fn get_static_table_id() -> usize;
     fn get_table_id(&self) -> usize;
     fn get_id(&self) -> Identifier;
+    fn get_table_id_field(&self) -> String;
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -51,6 +53,19 @@ impl Table {
         let result = some_kind_of_uppercase_first_letter(&self.name);
         result.to_case(Case::Camel)
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct SearchResult<T> {
+    pub count: usize,
+    pub next: Option<String>,
+    pub previous: Option<String>,
+    pub results: Vec<T>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct IdOnly {
+    pub id: usize,
 }
 
 impl Client {
@@ -103,27 +118,87 @@ impl Client {
         }
     }
 
+    pub async fn list<T>(&self) -> Vec<T>     where
+        T: BaserowObject + Serialize + DeserializeOwned,
+    {
+        let list_url = format!("{CREATE_RECORD_URL}{}/", T::get_static_table_id());
+        
+        let response = self
+            .client
+            .get(list_url)
+            .send()
+            .await
+            .unwrap()
+            .json::<SearchResult<T>>().await.unwrap();
+        
+        Vec::new()
+    }
+    
     pub async fn create<T>(&self, obj: &T)
     where
         T: BaserowObject + Serialize,
     {
         let create_url = format!("{CREATE_RECORD_URL}{}/", obj.get_table_id().to_string());
-        
-        println!("{:?}", self.client);
+
         let request = self
             .client
             .post(create_url)
             .header(CONTENT_TYPE, "application/json")
             .body(serde_json::to_string(obj).unwrap())
-            .build().unwrap();
-        
-        println!("Request\n{:?}", request);
-        let response = self.client.execute(request)
-            .await
+            .build()
             .unwrap();
+
+        println!("Request\n{:?}", request);
+        let response = self.client.execute(request).await.unwrap();
 
         println!("{:?}", response);
         println!("{:?}", response.text().await.unwrap())
+    }
+
+    pub async fn update<T>(&self, obj: &T)
+    where
+        T: BaserowObject + Serialize,
+    {
+        // Need to find the rowid for the object first
+        let id: String = obj.get_id().into();
+        let find_url = format!(
+            "{LIST_RECORD_URL}{}/?filter__{}__equal={}",
+            obj.get_table_id(),
+            obj.get_table_id_field(),
+            id
+        );
+
+        println!("{:?}", self.client);
+        let mut search_result = self
+            .client
+            .get(find_url)
+            .send()
+            .await
+            .unwrap()
+            .json::<SearchResult<IdOnly>>()
+            .await
+            .unwrap();
+
+        if  !search_result.count.eq(&1) {
+            panic!("Should only have found one object for primary id!");
+        }
+
+        let id: String = search_result.results.first().unwrap().id.to_string();
+
+        let update_url = format!("{CREATE_RECORD_URL}{}/{}/", obj.get_table_id().to_string(), id);
+        println!("{}", update_url);
+
+        println!("{:?}", self.client);
+        let response = self
+            .client
+            .patch(update_url)
+            .header(CONTENT_TYPE, "application/json")
+            .body(serde_json::to_string(obj).unwrap())
+            .send()
+            .await
+            .unwrap();
+        println!("{:?}", response);
+        println!("{:?}", response.text().await.unwrap());
     }
 
     pub async fn generate_structs(&self, database: usize) {
@@ -133,24 +208,19 @@ impl Client {
         println!("use crate::baserow::client::{{BaserowObject, Identifier}};\n");
         for table in tablelist {
             let struct_name = table.get_struct_name();
-            let mut primary_field = ("ERROR".to_string(), "ERROR".to_string());
+            let mut primary_field: Option<TableField> = None;
             println!("#[derive(Serialize, Deserialize, Debug)]");
             println!("pub struct {} {{", struct_name);
             if let Some(fields) = table.fields {
                 let mut filtered_primary_fields = fields
                     .iter()
                     .filter(|field| field.is_primary())
-                    .map(|field| {
-                        (
-                            field.get_name().to_string(),
-                            field.get_rust_type().to_string(),
-                        )
-                    })
-                    .collect::<Vec<(String, String)>>();
+                    .map(|field| field.clone())
+                    .collect::<Vec<TableField>>();
                 if filtered_primary_fields.len() != 1 {
                     panic!("got more or less than one primary field!");
                 }
-                primary_field = filtered_primary_fields.pop().unwrap();
+                primary_field = filtered_primary_fields.pop();
 
                 for field in fields {
                     println!("#[serde(rename = \"field_{}\")]", field.get_id());
@@ -164,25 +234,34 @@ impl Client {
             println!("}}\n\n");
             println!("impl BaserowObject for {} {{\n", struct_name);
             println!("  fn get_table_id(&self) -> usize {{");
+            println!("    Self::get_static_table_id()");
+            println!("  }}");
+
+            println!("  fn get_static_table_id() -> usize {{");
             println!("    {}", table.id);
             println!("  }}");
+
             println!("  fn get_id(&self) -> Identifier {{");
+            let primary_field = primary_field.unwrap();
             Identifier::Text {
-                id: primary_field.0.to_string(),
+                id: primary_field.get_name(),
             };
-            if primary_field.1.eq("String") {
+            if primary_field.get_rust_type().eq("String") {
                 println!(
                     "    Identifier::Text {{ id: self.{}.to_string() }}",
-                    primary_field.0.to_string()
+                    primary_field.get_name()
                 );
             } else {
                 println!(
                     "    Identifier::Numeric {{ id: self.{} }}",
-                    primary_field.0.to_string()
+                    primary_field.get_name()
                 );
             }
-
             println!("  }}");
+            println!("  fn get_table_id_field(&self) -> String {{");
+            println!("    \"field_{}\".to_string()", primary_field.get_id());
+            println!("  }}");
+
             println!("}}");
         }
     }
@@ -206,7 +285,7 @@ mod tests {
         let client = Client::new("Q4kQ7u5MwSc2LqpAfFl03OS4FVzelr2Z");
         client.generate_structs(217366).await;
     }
-
+    
     #[tokio::test]
     async fn test_create_offer() {
         let client = Client::new("Q4kQ7u5MwSc2LqpAfFl03OS4FVzelr2Z");
@@ -219,4 +298,25 @@ mod tests {
 
         client.create(&offer).await;
     }
+
+    #[tokio::test]
+    async fn test_update_offer() {
+        let client = Client::new("Q4kQ7u5MwSc2LqpAfFl03OS4FVzelr2Z");
+        let offer = offers {
+            easybill_id: 123,
+            customer: "changedcustomername".to_string(),
+            amount: 12000,
+            status: "sent".to_string(),
+        };
+
+        client.update(&offer).await;
+    }
+
+    #[tokio::test]
+    async fn test_list_offer() {
+        let client = Client::new("Q4kQ7u5MwSc2LqpAfFl03OS4FVzelr2Z");
+        let offers: Vec<offers> = client.list().await;
+        println!("{:?}", offers);
+    }
+    
 }

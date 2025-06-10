@@ -1,7 +1,7 @@
 use convert_case::{Case, Casing};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SharedFields {
     pub id: usize,
     pub table_id: usize,
@@ -16,7 +16,7 @@ pub struct SharedFields {
     pub workspace_id: usize,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum TableField {
     #[serde(rename = "text")]
@@ -232,13 +232,13 @@ pub enum TableField {
     },
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Collaborator {
     id: isize,
     name: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SelectOption {
     id: isize,
     value: String,

@@ -38,13 +38,18 @@ pub struct companies {
 impl BaserowObject for companies {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         520298
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text { id: self.name.to_string() }
     }
+    fn get_table_id_field(&self) -> String {
+        "field_4133237".to_string()
+    }
 }
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct subscriptions {
     #[serde(rename = "field_4133311")]
@@ -71,10 +76,16 @@ pub struct subscriptions {
 impl BaserowObject for subscriptions {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         520307
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text { id: self.ty.to_string() }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4133311".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug)]
@@ -111,10 +122,16 @@ pub struct jira {
 impl BaserowObject for jira {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         520652
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text { id: self.jira_issue_id.to_string() }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4136052".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug)]
@@ -135,10 +152,16 @@ pub struct easybill {
 impl BaserowObject for easybill {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         521681
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text { id: self.name.to_string() }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4144714".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug)]
@@ -157,10 +180,16 @@ pub struct issues {
 impl BaserowObject for issues {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         552081
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text { id: self.url.to_string() }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4422144".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug)]
@@ -177,10 +206,16 @@ pub struct users {
 impl BaserowObject for users {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         556243
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text { id: self.username.to_string() }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4459526".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug)]
@@ -199,10 +234,16 @@ pub struct customerIssues {
 impl BaserowObject for customerIssues {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         556261
     }
     fn get_id(&self) -> Identifier {
         Identifier::Numeric { id: self.bla }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4459691".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug)]
@@ -231,10 +272,16 @@ pub struct dateDim {
 impl BaserowObject for dateDim {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         563399
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text { id: self.day.to_string() }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4520320".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug)]
@@ -261,10 +308,16 @@ pub struct fjContentPlan {
 impl BaserowObject for fjContentPlan {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         563401
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text { id: self.title.to_string() }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4520338".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug)]
@@ -309,10 +362,16 @@ pub struct fjOrder {
 impl BaserowObject for fjOrder {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         565099
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text { id: self.ban.to_string() }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4536094".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug)]
@@ -331,9 +390,15 @@ pub struct offers {
 impl BaserowObject for offers {
 
     fn get_table_id(&self) -> usize {
+        Self::get_static_table_id()
+    }
+    fn get_static_table_id() -> usize {
         568215
     }
     fn get_id(&self) -> Identifier {
         Identifier::Numeric { id: self.easybill_id }
+    }
+    fn get_table_id_field(&self) -> String {
+        "field_4565570".to_string()
     }
 }
