@@ -37,7 +37,6 @@ mod tests {
 
         let client = reqwest::Client::new();
         let mut headers = HeaderMap::new();
-        headers.append(AUTHORIZATION, HeaderValue::from_str("Token Due3bnmHOu4qujhru0qYTTaUd3BmlDhU").unwrap());
         let response = client
             .post(request_url)
             .body(serde_json::to_string(&offer).unwrap())
