@@ -1,9 +1,12 @@
 use crate::baserow::field_types::TableField;
 use convert_case::{Case, Casing};
+use quote::__private::TokenStream;
+use quote::{format_ident, quote, TokenStreamExt};
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client as ReqwestClient;
-use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 static LIST_TABLES_URL: &str = "https://api.baserow.io/api/database/tables/all-tables/";
 static LIST_TABLE_FIELDS_URL: &str = "https://api.baserow.io/api/database/fields/table/";
@@ -31,14 +34,14 @@ struct Table {
 }
 
 pub enum Identifier {
-    Numeric { id: isize },
-    Text { id: String },
+    Numeric { id: Option<isize> },
+    Text { id: Option<String> },
 }
 
-impl Into<String> for Identifier {
-    fn into(self) -> String {
+impl Identifier {
+    pub fn get_string(&self) -> Option<String> {
         match self {
-            Identifier::Numeric { id } => id.to_string(),
+            Identifier::Numeric { id } => id.as_ref().map(|id| id.to_string()),
             Identifier::Text { id } => id.clone(),
         }
     }
@@ -50,8 +53,7 @@ impl Table {
     }
 
     pub fn get_struct_name(&self) -> String {
-        let result = some_kind_of_uppercase_first_letter(&self.name);
-        result.to_case(Case::Camel)
+        self.name.to_case(Case::UpperCamel)
     }
 }
 
@@ -118,22 +120,25 @@ impl Client {
         }
     }
 
-    pub async fn list<T>(&self) -> Vec<T>     where
+    pub async fn list<T>(&self) -> Vec<T>
+    where
         T: BaserowObject + Serialize + DeserializeOwned,
     {
         let list_url = format!("{CREATE_RECORD_URL}{}/", T::get_static_table_id());
-        
+
         let response = self
             .client
             .get(list_url)
             .send()
             .await
             .unwrap()
-            .json::<SearchResult<T>>().await.unwrap();
-        
+            .json::<SearchResult<T>>()
+            .await
+            .unwrap();
+
         Vec::new()
     }
-    
+
     pub async fn create<T>(&self, obj: &T)
     where
         T: BaserowObject + Serialize,
@@ -160,7 +165,7 @@ impl Client {
         T: BaserowObject + Serialize,
     {
         // Need to find the rowid for the object first
-        let id: String = obj.get_id().into();
+        let id: String = obj.get_id().get_string().unwrap();
         let find_url = format!(
             "{LIST_RECORD_URL}{}/?filter__{}__equal={}",
             obj.get_table_id(),
@@ -179,13 +184,17 @@ impl Client {
             .await
             .unwrap();
 
-        if  !search_result.count.eq(&1) {
+        if !search_result.count.eq(&1) {
             panic!("Should only have found one object for primary id!");
         }
 
         let id: String = search_result.results.first().unwrap().id.to_string();
 
-        let update_url = format!("{CREATE_RECORD_URL}{}/{}/", obj.get_table_id().to_string(), id);
+        let update_url = format!(
+            "{CREATE_RECORD_URL}{}/{}/",
+            obj.get_table_id().to_string(),
+            id
+        );
         println!("{}", update_url);
 
         println!("{:?}", self.client);
@@ -204,90 +213,124 @@ impl Client {
     pub async fn generate_structs(&self, database: usize) {
         let tablelist = self.list_tables().await;
 
-        println!("use serde::{{Deserialize, Serialize}};\n");
-        println!("use crate::baserow::client::{{BaserowObject, Identifier}};\n");
+        let mut structs = quote! {
+            use serde::{Deserialize, Serialize};
+            use crate::baserow::client::{BaserowObject, Identifier};
+        };
+        println!("{:?}", tablelist);
         for table in tablelist {
-            let struct_name = table.get_struct_name();
-            let mut primary_field: Option<TableField> = None;
-            println!("#[derive(Serialize, Deserialize, Debug)]");
-            println!("pub struct {} {{", struct_name);
-            if let Some(fields) = table.fields {
-                let mut filtered_primary_fields = fields
-                    .iter()
-                    .filter(|field| field.is_primary())
-                    .map(|field| field.clone())
-                    .collect::<Vec<TableField>>();
-                if filtered_primary_fields.len() != 1 {
-                    panic!("got more or less than one primary field!");
+            // Gather information to be used during generation
+            let struct_name = format_ident!("{}", table.get_struct_name());
+            let fields = generate_fields(table.fields.as_ref());
+            let primary_field = get_primary_field(table.fields.as_ref());
+            let primary_field_id = format!("field_{}", primary_field.get_id());
+            let primary_id_function = generate_primary_id_fn(primary_field);
+            let table_id = table.id;
+            
+            // Generate code
+            structs.extend(quote! {
+                #[derive(Serialize, Deserialize, Debug, Clone)]
+                pub struct #struct_name {
+                    #fields
                 }
-                primary_field = filtered_primary_fields.pop();
+                impl BaserowObject for #struct_name {
+                    fn get_static_table_id() -> usize {
+                        #table_id
+                    }
 
-                for field in fields {
-                    println!("#[serde(rename = \"field_{}\")]", field.get_id());
-                    println!(
-                        "  pub {}: Option<{}>,",
-                        field.get_name().to_case(Case::Snake),
-                        field.get_rust_type()
-                    );
-                }
-            }
-            println!("}}\n\n");
-            println!("impl BaserowObject for {} {{\n", struct_name);
-            println!("  fn get_table_id(&self) -> usize {{");
-            println!("    Self::get_static_table_id()");
-            println!("  }}");
+                    fn get_table_id(&self) -> usize {
+                        Self::get_static_table_id()
+                    }
 
-            println!("  fn get_static_table_id() -> usize {{");
-            println!("    {}", table.id);
-            println!("  }}");
+                    fn get_id(&self) -> Identifier {
+                        #primary_id_function
+                    }
 
-            println!("  fn get_id(&self) -> Identifier {{");
-            let primary_field = primary_field.unwrap();
-            Identifier::Text {
-                id: primary_field.get_name(),
-            };
-            if primary_field.get_rust_type().eq("String") {
-                println!(
-                    "    Identifier::Text {{ id: self.{}.to_string() }}",
-                    primary_field.get_name()
-                );
-            } else {
-                println!(
-                    "    Identifier::Numeric {{ id: self.{} }}",
-                    primary_field.get_name()
-                );
-            }
-            println!("  }}");
-            println!("  fn get_table_id_field(&self) -> String {{");
-            println!("    \"field_{}\".to_string()", primary_field.get_id());
-            println!("  }}");
-
-            println!("}}");
+                    fn get_table_id_field(&self) -> String {
+                        #primary_field_id.to_string()
+                    }
+            }});
         }
+        // Print formated code to stdout
+        let syntax_tree = syn::parse_file(&structs.to_string()).unwrap();
+        println!("{}", prettyplease::unparse(&syntax_tree));
     }
 }
 
-fn some_kind_of_uppercase_first_letter(s: &str) -> String {
-    let mut c = s.chars();
-    match c.next() {
-        None => String::new(),
-        Some(f) => f.to_uppercase().chain(c).collect(),
+fn get_primary_field(fields: Option<&Vec<TableField>>) -> &TableField {
+    if let Some(fields) = fields {
+        let mut filtered_primary_fields = fields
+            .iter()
+            .filter(|field| field.is_primary())
+            .collect::<Vec<&TableField>>();
+        if filtered_primary_fields.len() != 1 {
+            panic!("got more or less than one primary field!");
+        }
+        filtered_primary_fields.first().unwrap()
+    } else {
+        panic!("got no fields to determine primary field");
+    }
+}
+
+fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
+    if let Some(fields) = fields {
+        let mut field_stream = TokenStream::new();
+        for field in fields {
+            /*match field {
+                TableField::SingleSelect { shared_fields, select_options, single_select_default } => {
+                    // Need to generate an enum to represent this field later on
+                    #[derive(Serialize, Deserialize, Debug, Clone)]
+                    #[serde(tag = "value")]
+                    pub enum Status {
+                        #[serde(rename = "draft")]
+                        Draft {color: String, id: usize},
+                        #[serde(rename = "sent")]
+                        Sent {color: String, id: usize  },
+                    }
+                },
+                _ => {}
+            };*/
+            let field_name = format_ident!("{}", field.get_name().to_case(Case::Snake));
+            let field_type = format_ident!("{}", field.get_rust_type());
+            let field_id = format!("field_{}", field.get_id());
+            field_stream.extend(quote! {
+                #[serde(rename = #field_id)]
+                pub #field_name: Option<#field_type>,
+            });
+        }
+        Some(field_stream)
+    } else {
+        None
+    }
+}
+
+fn generate_primary_id_fn(primary_field: &TableField) -> TokenStream {
+    let field_name = format_ident!("{}", primary_field.get_name());
+    if primary_field.get_rust_type().eq("String") {
+        quote! {
+        Identifier::Text { id: self.#field_name.as_ref().map(|id|id.to_string())}
+        }
+    } else {
+        quote! {
+            Identifier::Numeric { id: self.#field_name }
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use crate::baserow::client::{Client, SearchResult};
     use crate::baserow::field_types::TableField;
+    use std::fs;
     use crate::baserow::generated::offers;
 
     #[tokio::test]
     async fn generate_code() {
-        let client = Client::new("");
+        let client = Client::new("u35F3sNUheXm1jgWhLftPvHPg6MmtpQg");
         client.generate_structs(217366).await;
     }
-    
+
+    /*
     #[tokio::test]
     async fn test_create_offer() {
         let client = Client::new("");
@@ -313,10 +356,10 @@ mod tests {
 
         client.update(&offer).await;
     }
-
+     */
     #[tokio::test]
     async fn test_list_offer() {
-        let client = Client::new("");
+        let client = Client::new("u35F3sNUheXm1jgWhLftPvHPg6MmtpQg");
         let offers: Vec<offers> = client.list().await;
         println!("{:?}", offers);
     }
@@ -328,7 +371,7 @@ mod tests {
 
         let json: SearchResult<offers> =
             serde_json::from_str(&contents).expect("file should be proper JSON");
-
     }
-    
+
+
 }

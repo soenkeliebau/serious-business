@@ -1,5 +1,6 @@
 use convert_case::{Case, Casing};
 use serde::{Deserialize, Serialize};
+use textwrap::wrap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SharedFields {
@@ -285,6 +286,70 @@ impl TableField {
             TableField::AutoNumber { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
             TableField::Password { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
             TableField::Ai { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
+        }
+    }
+
+    pub fn get_original_name(&self) -> &String {
+        match self {
+            TableField::Text { shared_fields, .. } => &shared_fields.name,
+            TableField::LongText { shared_fields, .. } => &shared_fields.name,
+            TableField::Url { shared_fields, .. } => &shared_fields.name,
+            TableField::Email { shared_fields, .. } => &shared_fields.name,
+            TableField::Number { shared_fields, .. } => &shared_fields.name,
+            TableField::Rating { shared_fields, .. } => &shared_fields.name,
+            TableField::Boolean { shared_fields, .. } => &shared_fields.name,
+            TableField::Date { shared_fields, .. } => &shared_fields.name,
+            TableField::LastModified { shared_fields, .. } => &shared_fields.name,
+            TableField::LastModifiedBy { shared_fields, .. } => &shared_fields.name,
+            TableField::CreatedOn { shared_fields, .. } => &shared_fields.name,
+            TableField::CreatedBy { shared_fields, .. } => &shared_fields.name,
+            TableField::Duration { shared_fields, .. } => &shared_fields.name,
+            TableField::LinkRow { shared_fields, .. } => &shared_fields.name,
+            TableField::File { shared_fields, .. } => &shared_fields.name,
+            TableField::SingleSelect { shared_fields, .. } => &shared_fields.name,
+            TableField::MultipleSelect { shared_fields, .. } => &shared_fields.name,
+            TableField::PhoneNumber { shared_fields, .. } => &shared_fields.name,
+            TableField::Formula { shared_fields, .. } => &shared_fields.name,
+            TableField::Count { shared_fields, .. } => &shared_fields.name,
+            TableField::Rollup { shared_fields, .. } => &shared_fields.name,
+            TableField::Lookup { shared_fields, .. } => &shared_fields.name,
+            TableField::MultipleCollaborators { shared_fields, .. } => &shared_fields.name,
+            TableField::Uuid { shared_fields, .. } => &shared_fields.name,
+            TableField::AutoNumber { shared_fields, .. } => &shared_fields.name,
+            TableField::Password { shared_fields, .. } => &shared_fields.name,
+            TableField::Ai { shared_fields, .. } => &shared_fields.name,
+        }
+    }
+
+    pub fn get_description(&self) -> &Option<String>{
+        match self {
+            TableField::Text { shared_fields, .. } => &shared_fields.description,
+            TableField::LongText { shared_fields, .. } => &shared_fields.description,
+            TableField::Url { shared_fields, .. } => &shared_fields.description,
+            TableField::Email { shared_fields, .. } => &shared_fields.description,
+            TableField::Number { shared_fields, .. } => &shared_fields.description,
+            TableField::Rating { shared_fields, .. } => &shared_fields.description,
+            TableField::Boolean { shared_fields, .. } => &shared_fields.description,
+            TableField::Date { shared_fields, .. } => &shared_fields.description,
+            TableField::LastModified { shared_fields, .. } => &shared_fields.description,
+            TableField::LastModifiedBy { shared_fields, .. } => &shared_fields.description,
+            TableField::CreatedOn { shared_fields, .. } => &shared_fields.description,
+            TableField::CreatedBy { shared_fields, .. } => &shared_fields.description,
+            TableField::Duration { shared_fields, .. } => &shared_fields.description,
+            TableField::LinkRow { shared_fields, .. } => &shared_fields.description,
+            TableField::File { shared_fields, .. } => &shared_fields.description,
+            TableField::SingleSelect { shared_fields, .. } => &shared_fields.description,
+            TableField::MultipleSelect { shared_fields, .. } => &shared_fields.description,
+            TableField::PhoneNumber { shared_fields, .. } => &shared_fields.description,
+            TableField::Formula { shared_fields, .. } => &shared_fields.description,
+            TableField::Count { shared_fields, .. } => &shared_fields.description,
+            TableField::Rollup { shared_fields, .. } => &shared_fields.description,
+            TableField::Lookup { shared_fields, .. } => &shared_fields.description,
+            TableField::MultipleCollaborators { shared_fields, .. } => &shared_fields.description,
+            TableField::Uuid { shared_fields, .. } => &shared_fields.description,
+            TableField::AutoNumber { shared_fields, .. } => &shared_fields.description,
+            TableField::Password { shared_fields, .. } => &shared_fields.description,
+            TableField::Ai { shared_fields, .. } => &shared_fields.description,
         }
     }
     

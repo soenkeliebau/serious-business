@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
-
+use std::num::ParseIntError;
+use std::str::FromStr;
+use serde::{de::Error, Deserialize, Deserializer, Serialize};
 use crate::baserow::client::{BaserowObject, Identifier};
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct companies {
     #[serde(rename = "field_4133237")]
     pub name: Option<String>,
@@ -33,24 +33,23 @@ pub struct companies {
     #[serde(rename = "field_4459796")]
     pub count: Option<String>,
 }
-
-
 impl BaserowObject for companies {
-
+    fn get_static_table_id() -> usize {
+        520298usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        520298
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Text { id: self.name.to_string() }
+        Identifier::Text {
+            id: self.name.as_ref().map(|id| id.to_string()),
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4133237".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct subscriptions {
     #[serde(rename = "field_4133311")]
     pub ty: Option<String>,
@@ -71,24 +70,23 @@ pub struct subscriptions {
     #[serde(rename = "field_4165002")]
     pub start_date: Option<String>,
 }
-
-
 impl BaserowObject for subscriptions {
-
+    fn get_static_table_id() -> usize {
+        520307usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        520307
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Text { id: self.ty.to_string() }
+        Identifier::Text {
+            id: self.ty.as_ref().map(|id| id.to_string()),
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4133311".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct jira {
     #[serde(rename = "field_4136052")]
     pub jira_issue_id: Option<String>,
@@ -117,24 +115,23 @@ pub struct jira {
     #[serde(rename = "field_4136064")]
     pub issue_url: Option<String>,
 }
-
-
 impl BaserowObject for jira {
-
+    fn get_static_table_id() -> usize {
+        520652usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        520652
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Text { id: self.jira_issue_id.to_string() }
+        Identifier::Text {
+            id: self.jira_issue_id.as_ref().map(|id| id.to_string()),
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4136052".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct easybill {
     #[serde(rename = "field_4144714")]
     pub name: Option<String>,
@@ -147,24 +144,23 @@ pub struct easybill {
     #[serde(rename = "field_4167286")]
     pub companies: Option<String>,
 }
-
-
 impl BaserowObject for easybill {
-
+    fn get_static_table_id() -> usize {
+        521681usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        521681
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Text { id: self.name.to_string() }
+        Identifier::Text {
+            id: self.name.as_ref().map(|id| id.to_string()),
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4144714".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct issues {
     #[serde(rename = "field_4422144")]
     pub url: Option<String>,
@@ -175,24 +171,23 @@ pub struct issues {
     #[serde(rename = "field_4459722")]
     pub customer_issues: Option<String>,
 }
-
-
 impl BaserowObject for issues {
-
+    fn get_static_table_id() -> usize {
+        552081usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        552081
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Text { id: self.url.to_string() }
+        Identifier::Text {
+            id: self.url.as_ref().map(|id| id.to_string()),
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4422144".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct users {
     #[serde(rename = "field_4459526")]
     pub username: Option<String>,
@@ -201,24 +196,23 @@ pub struct users {
     #[serde(rename = "field_4459528")]
     pub password: Option<String>,
 }
-
-
 impl BaserowObject for users {
-
+    fn get_static_table_id() -> usize {
+        556243usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        556243
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Text { id: self.username.to_string() }
+        Identifier::Text {
+            id: self.username.as_ref().map(|id| id.to_string()),
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4459526".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct customerIssues {
     #[serde(rename = "field_4459691")]
     pub bla: Option<isize>,
@@ -229,24 +223,23 @@ pub struct customerIssues {
     #[serde(rename = "field_4459723")]
     pub description: Option<String>,
 }
-
-
 impl BaserowObject for customerIssues {
-
+    fn get_static_table_id() -> usize {
+        556261usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        556261
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Numeric { id: self.bla }
+        Identifier::Numeric {
+            id: self.bla,
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4459691".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct dateDim {
     #[serde(rename = "field_4520320")]
     pub day: Option<String>,
@@ -267,24 +260,23 @@ pub struct dateDim {
     #[serde(rename = "field_4520327")]
     pub special_day: Option<String>,
 }
-
-
 impl BaserowObject for dateDim {
-
+    fn get_static_table_id() -> usize {
+        563399usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        563399
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Text { id: self.day.to_string() }
+        Identifier::Text {
+            id: self.day.as_ref().map(|id| id.to_string()),
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4520320".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct fjContentPlan {
     #[serde(rename = "field_4520338")]
     pub title: Option<String>,
@@ -303,24 +295,23 @@ pub struct fjContentPlan {
     #[serde(rename = "field_4520626")]
     pub channel: Option<String>,
 }
-
-
 impl BaserowObject for fjContentPlan {
-
+    fn get_static_table_id() -> usize {
+        563401usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        563401
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Text { id: self.title.to_string() }
+        Identifier::Text {
+            id: self.title.as_ref().map(|id| id.to_string()),
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4520338".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct fjOrder {
     #[serde(rename = "field_4536094")]
     pub ban: Option<String>,
@@ -357,46 +348,61 @@ pub struct fjOrder {
     #[serde(rename = "field_4536703")]
     pub coffee_cup: Option<String>,
 }
-
-
 impl BaserowObject for fjOrder {
-
+    fn get_static_table_id() -> usize {
+        565099usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        565099
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Text { id: self.ban.to_string() }
+        Identifier::Text {
+            id: self.ban.as_ref().map(|id| id.to_string()),
+        }
     }
     fn get_table_id_field(&self) -> String {
+        
         "field_4536094".to_string()
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct offers {
-    #[serde(rename = "field_4565570")]
+    #[serde(rename = "field_4565570", deserialize_with = "isize_from_str")]
     pub easybill_id: Option<isize>,
     #[serde(rename = "field_4565571")]
     pub customer: Option<String>,
-    #[serde(rename = "field_4565572")]
+    #[serde(rename = "field_4565572", deserialize_with = "isize_from_str")]
     pub amount: Option<isize>,
     #[serde(rename = "field_4565632")]
-    pub status: Option<String>,
+    pub status: Option<Status>,
+}
+
+fn isize_from_str<'de, D>(deserializer: D) -> Result<Option<isize>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: &str = Deserialize::deserialize(deserializer)?;
+    // do better hex decoding than this
+    match isize::from_str(s) {
+        Ok(value) => Ok(Some(value)),
+        Err(e) => Err(D::Error::custom(e))
+    }
 }
 
 
-impl BaserowObject for offers {
 
+
+impl BaserowObject for offers {
+    fn get_static_table_id() -> usize {
+        568215usize
+    }
     fn get_table_id(&self) -> usize {
         Self::get_static_table_id()
     }
-    fn get_static_table_id() -> usize {
-        568215
-    }
     fn get_id(&self) -> Identifier {
-        Identifier::Numeric { id: self.easybill_id }
+        Identifier::Numeric {
+            id: self.easybill_id,
+        }
     }
     fn get_table_id_field(&self) -> String {
         "field_4565570".to_string()
