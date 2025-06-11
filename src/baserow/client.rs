@@ -396,7 +396,9 @@ fn generate_deserializers() -> TokenStream {
         }
 }
 
-fn generate_single_select_enum(field: &TableField) -> Option<TokenStream>
+fn generate_single_select_enum(field: &TableField) -> Option<TokenStream> {
+    None
+}
 
 fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
     if let Some(fields) = fields {
