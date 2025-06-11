@@ -5,33 +5,33 @@ use crate::baserow::client::{BaserowObject, Identifier};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct companies {
     #[serde(rename = "field_4133237")]
-    pub name: String,
+    pub name: Option<String>,
     #[serde(rename = "field_4133238")]
-    pub notes: String,
+    pub notes: Option<String>,
     #[serde(rename = "field_4133239")]
-    pub active: bool,
+    pub active: Option<bool>,
     #[serde(rename = "field_4133334")]
-    pub subscriptions: String,
+    pub subscriptions: Option<String>,
     #[serde(rename = "field_4135947")]
-    pub arr: String,
+    pub arr: Option<String>,
     #[serde(rename = "field_4135948")]
-    pub contract_url: String,
+    pub contract_url: Option<String>,
     #[serde(rename = "field_4136227")]
-    pub tech_account_mgr: String,
+    pub tech_account_mgr: Option<String>,
     #[serde(rename = "field_4136228")]
-    pub biz_account_mgr: String,
+    pub biz_account_mgr: Option<String>,
     #[serde(rename = "field_4140645")]
-    pub state: String,
+    pub state: Option<String>,
     #[serde(rename = "field_4142010")]
-    pub ki_eingabeaufforderung: String,
+    pub ki_eingabeaufforderung: Option<String>,
     #[serde(rename = "field_4167285")]
-    pub easybill: String,
+    pub easybill: Option<String>,
     #[serde(rename = "field_4459573")]
-    pub formula: String,
+    pub formula: Option<String>,
     #[serde(rename = "field_4459795")]
-    pub customer_issues: String,
+    pub customer_issues: Option<String>,
     #[serde(rename = "field_4459796")]
-    pub count: String,
+    pub count: Option<String>,
 }
 
 
@@ -53,23 +53,23 @@ impl BaserowObject for companies {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct subscriptions {
     #[serde(rename = "field_4133311")]
-    pub ty: String,
+    pub ty: Option<String>,
     #[serde(rename = "field_4133313")]
-    pub active: bool,
+    pub active: Option<bool>,
     #[serde(rename = "field_4133333")]
-    pub companies: String,
+    pub companies: Option<String>,
     #[serde(rename = "field_4134285")]
-    pub prolongation_date: String,
+    pub prolongation_date: Option<String>,
     #[serde(rename = "field_4134292")]
-    pub arr: isize,
+    pub arr: Option<isize>,
     #[serde(rename = "field_4134297")]
-    pub payment_freq: isize,
+    pub payment_freq: Option<isize>,
     #[serde(rename = "field_4134371")]
-    pub next_payment_date: String,
+    pub next_payment_date: Option<String>,
     #[serde(rename = "field_4135241")]
-    pub nodes: isize,
+    pub nodes: Option<isize>,
     #[serde(rename = "field_4165002")]
-    pub start_date: String,
+    pub start_date: Option<String>,
 }
 
 
@@ -91,31 +91,31 @@ impl BaserowObject for subscriptions {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct jira {
     #[serde(rename = "field_4136052")]
-    pub jira_issue_id: String,
+    pub jira_issue_id: Option<String>,
     #[serde(rename = "field_4136053")]
-    pub summary: String,
+    pub summary: Option<String>,
     #[serde(rename = "field_4136054")]
-    pub description: String,
+    pub description: Option<String>,
     #[serde(rename = "field_4136055")]
-    pub assignee: String,
+    pub assignee: Option<String>,
     #[serde(rename = "field_4136056")]
-    pub reporter: String,
+    pub reporter: Option<String>,
     #[serde(rename = "field_4136057")]
-    pub labels: String,
+    pub labels: Option<String>,
     #[serde(rename = "field_4136058")]
-    pub created_date: String,
+    pub created_date: Option<String>,
     #[serde(rename = "field_4136059")]
-    pub updated_date: String,
+    pub updated_date: Option<String>,
     #[serde(rename = "field_4136060")]
-    pub resolved_date: String,
+    pub resolved_date: Option<String>,
     #[serde(rename = "field_4136061")]
-    pub due_date: String,
+    pub due_date: Option<String>,
     #[serde(rename = "field_4136062")]
-    pub state: String,
+    pub state: Option<String>,
     #[serde(rename = "field_4136063")]
-    pub project: String,
+    pub project: Option<String>,
     #[serde(rename = "field_4136064")]
-    pub issue_url: String,
+    pub issue_url: Option<String>,
 }
 
 
@@ -137,15 +137,15 @@ impl BaserowObject for jira {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct easybill {
     #[serde(rename = "field_4144714")]
-    pub name: String,
+    pub name: Option<String>,
     #[serde(rename = "field_4144716")]
-    pub active: bool,
+    pub active: Option<bool>,
     #[serde(rename = "field_4144717")]
-    pub country: String,
+    pub country: Option<String>,
     #[serde(rename = "field_4144777")]
-    pub customer_id: String,
+    pub customer_id: Option<String>,
     #[serde(rename = "field_4167286")]
-    pub companies: String,
+    pub companies: Option<String>,
 }
 
 
@@ -167,13 +167,13 @@ impl BaserowObject for easybill {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct issues {
     #[serde(rename = "field_4422144")]
-    pub url: String,
+    pub url: Option<String>,
     #[serde(rename = "field_4422145")]
-    pub notes: String,
+    pub notes: Option<String>,
     #[serde(rename = "field_4422148")]
-    pub companies: String,
+    pub companies: Option<String>,
     #[serde(rename = "field_4459722")]
-    pub customer_issues: String,
+    pub customer_issues: Option<String>,
 }
 
 
@@ -195,11 +195,11 @@ impl BaserowObject for issues {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct users {
     #[serde(rename = "field_4459526")]
-    pub username: String,
+    pub username: Option<String>,
     #[serde(rename = "field_4459527")]
-    pub email: String,
+    pub email: Option<String>,
     #[serde(rename = "field_4459528")]
-    pub password: String,
+    pub password: Option<String>,
 }
 
 
@@ -221,13 +221,13 @@ impl BaserowObject for users {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct customerIssues {
     #[serde(rename = "field_4459691")]
-    pub bla: isize,
+    pub bla: Option<isize>,
     #[serde(rename = "field_4459692")]
-    pub customer: String,
+    pub customer: Option<String>,
     #[serde(rename = "field_4459693")]
-    pub issue: String,
+    pub issue: Option<String>,
     #[serde(rename = "field_4459723")]
-    pub description: String,
+    pub description: Option<String>,
 }
 
 
@@ -249,23 +249,23 @@ impl BaserowObject for customerIssues {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct dateDim {
     #[serde(rename = "field_4520320")]
-    pub day: String,
+    pub day: Option<String>,
     #[serde(rename = "field_4520319")]
-    pub day_1: String,
+    pub day_1: Option<String>,
     #[serde(rename = "field_4520321")]
-    pub dayof_the_week: String,
+    pub dayof_the_week: Option<String>,
     #[serde(rename = "field_4520322")]
-    pub calendar_week: String,
+    pub calendar_week: Option<String>,
     #[serde(rename = "field_4520323")]
-    pub endof_month: String,
+    pub endof_month: Option<String>,
     #[serde(rename = "field_4520324")]
-    pub quarter: String,
+    pub quarter: Option<String>,
     #[serde(rename = "field_4520325")]
-    pub dayof_year: String,
+    pub dayof_year: Option<String>,
     #[serde(rename = "field_4520326")]
-    pub fiscal_year: String,
+    pub fiscal_year: Option<String>,
     #[serde(rename = "field_4520327")]
-    pub special_day: String,
+    pub special_day: Option<String>,
 }
 
 
@@ -287,21 +287,21 @@ impl BaserowObject for dateDim {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct fjContentPlan {
     #[serde(rename = "field_4520338")]
-    pub title: String,
+    pub title: Option<String>,
     #[serde(rename = "field_4520345")]
-    pub status: String,
+    pub status: Option<String>,
     #[serde(rename = "field_4520348")]
-    pub release_date: String,
+    pub release_date: Option<String>,
     #[serde(rename = "field_4520356")]
-    pub g_drive_doc_url: String,
+    pub g_drive_doc_url: Option<String>,
     #[serde(rename = "field_4520357")]
-    pub live_url: String,
+    pub live_url: Option<String>,
     #[serde(rename = "field_4520403")]
-    pub briefing: String,
+    pub briefing: Option<String>,
     #[serde(rename = "field_4520526")]
-    pub responsible: String,
+    pub responsible: Option<String>,
     #[serde(rename = "field_4520626")]
-    pub channel: String,
+    pub channel: Option<String>,
 }
 
 
@@ -323,39 +323,39 @@ impl BaserowObject for fjContentPlan {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct fjOrder {
     #[serde(rename = "field_4536094")]
-    pub ban: String,
+    pub ban: Option<String>,
     #[serde(rename = "field_4536095")]
-    pub kunden_bestellnummer: String,
+    pub kunden_bestellnummer: Option<String>,
     #[serde(rename = "field_4536096")]
-    pub auftragsname: String,
+    pub auftragsname: Option<String>,
     #[serde(rename = "field_4536097")]
-    pub unternehmen: String,
+    pub unternehmen: Option<String>,
     #[serde(rename = "field_4536098")]
-    pub kostenstelle: String,
+    pub kostenstelle: Option<String>,
     #[serde(rename = "field_4536099")]
-    pub summe: String,
+    pub summe: Option<String>,
     #[serde(rename = "field_4536100")]
-    pub währung: String,
+    pub währung: Option<String>,
     #[serde(rename = "field_4536101")]
-    pub status: String,
+    pub status: Option<String>,
     #[serde(rename = "field_4536102")]
-    pub buchungsstart: String,
+    pub buchungsstart: Option<String>,
     #[serde(rename = "field_4536103")]
-    pub buchungsende: String,
+    pub buchungsende: Option<String>,
     #[serde(rename = "field_4536104")]
-    pub erstelldatum: String,
+    pub erstelldatum: Option<String>,
     #[serde(rename = "field_4536105")]
-    pub erstellt_von: String,
+    pub erstellt_von: Option<String>,
     #[serde(rename = "field_4536545")]
-    pub ty: String,
+    pub ty: Option<String>,
     #[serde(rename = "field_4536586")]
-    pub subscription: bool,
+    pub subscription: Option<bool>,
     #[serde(rename = "field_4536697")]
-    pub offer: String,
+    pub offer: Option<String>,
     #[serde(rename = "field_4536700")]
-    pub order: String,
+    pub order: Option<String>,
     #[serde(rename = "field_4536703")]
-    pub coffee_cup: String,
+    pub coffee_cup: Option<String>,
 }
 
 
@@ -377,13 +377,13 @@ impl BaserowObject for fjOrder {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct offers {
     #[serde(rename = "field_4565570")]
-    pub easybill_id: isize,
+    pub easybill_id: Option<isize>,
     #[serde(rename = "field_4565571")]
-    pub customer: String,
+    pub customer: Option<String>,
     #[serde(rename = "field_4565572")]
-    pub amount: isize,
+    pub amount: Option<isize>,
     #[serde(rename = "field_4565632")]
-    pub status: String,
+    pub status: Option<String>,
 }
 
 

@@ -225,7 +225,7 @@ impl Client {
                 for field in fields {
                     println!("#[serde(rename = \"field_{}\")]", field.get_id());
                     println!(
-                        "  pub {}: {},",
+                        "  pub {}: Option<{}>,",
                         field.get_name().to_case(Case::Snake),
                         field.get_rust_type()
                     );
@@ -277,18 +277,20 @@ fn some_kind_of_uppercase_first_letter(s: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::baserow::client::Client;
+    use std::fs;
+    use crate::baserow::client::{Client, SearchResult};
+    use crate::baserow::field_types::TableField;
     use crate::baserow::generated::offers;
 
     #[tokio::test]
     async fn generate_code() {
-        let client = Client::new("Q4kQ7u5MwSc2LqpAfFl03OS4FVzelr2Z");
+        let client = Client::new("");
         client.generate_structs(217366).await;
     }
     
     #[tokio::test]
     async fn test_create_offer() {
-        let client = Client::new("Q4kQ7u5MwSc2LqpAfFl03OS4FVzelr2Z");
+        let client = Client::new("");
         let offer = offers {
             easybill_id: 123,
             customer: "testcustomer1234".to_string(),
@@ -301,7 +303,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_offer() {
-        let client = Client::new("Q4kQ7u5MwSc2LqpAfFl03OS4FVzelr2Z");
+        let client = Client::new("");
         let offer = offers {
             easybill_id: 123,
             customer: "changedcustomername".to_string(),
@@ -314,9 +316,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_offer() {
-        let client = Client::new("Q4kQ7u5MwSc2LqpAfFl03OS4FVzelr2Z");
+        let client = Client::new("");
         let offers: Vec<offers> = client.list().await;
         println!("{:?}", offers);
+    }
+
+    #[test]
+    fn test_deserialize_offerlist() {
+        let contents = fs::read_to_string("testdata/list_offers1.json")
+            .expect("Should have been able to read the file");
+
+        let json: SearchResult<offers> =
+            serde_json::from_str(&contents).expect("file should be proper JSON");
+
     }
     
 }
