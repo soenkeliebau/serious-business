@@ -1,4 +1,6 @@
 use convert_case::{Case, Casing};
+use quote::__private::TokenStream;
+use quote::quote;
 use serde::{Deserialize, Serialize};
 use textwrap::wrap;
 
@@ -125,7 +127,7 @@ pub enum TableField {
         link_row_limit_selection_view_id: Option<isize>,
         link_row_table_primary_field: Box<TableField>,
         link_row_multiple_relationships: bool,
-    }, 
+    },
     #[serde(rename = "file")]
     File {
         #[serde(flatten)]
@@ -256,36 +258,42 @@ impl TableField {
             clean_name
         }
     }
-    
+
     pub fn get_name(&self) -> String {
         match self {
-            TableField::Text { shared_fields, .. } => Self::clean_name(&shared_fields.name), 
-            TableField::LongText { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Url { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Email { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Number { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Rating { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Boolean { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Date { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::LastModified { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::LastModifiedBy { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::CreatedOn { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::CreatedBy { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Duration { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::LinkRow { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::File { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::SingleSelect { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::MultipleSelect { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::PhoneNumber { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Formula { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Count { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Rollup { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Lookup { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::MultipleCollaborators { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Uuid { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::AutoNumber { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Password { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
-            TableField::Ai { shared_fields, .. } => Self::clean_name(&shared_fields.name),  
+            TableField::Text { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::LongText { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Url { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Email { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Number { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Rating { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Boolean { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Date { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::LastModified { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::LastModifiedBy { shared_fields, .. } => {
+                Self::clean_name(&shared_fields.name)
+            }
+            TableField::CreatedOn { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::CreatedBy { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Duration { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::LinkRow { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::File { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::SingleSelect { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::MultipleSelect { shared_fields, .. } => {
+                Self::clean_name(&shared_fields.name)
+            }
+            TableField::PhoneNumber { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Formula { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Count { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Rollup { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Lookup { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::MultipleCollaborators { shared_fields, .. } => {
+                Self::clean_name(&shared_fields.name)
+            }
+            TableField::Uuid { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::AutoNumber { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Password { shared_fields, .. } => Self::clean_name(&shared_fields.name),
+            TableField::Ai { shared_fields, .. } => Self::clean_name(&shared_fields.name),
         }
     }
 
@@ -321,7 +329,7 @@ impl TableField {
         }
     }
 
-    pub fn get_description(&self) -> &Option<String>{
+    pub fn get_description(&self) -> &Option<String> {
         match self {
             TableField::Text { shared_fields, .. } => &shared_fields.description,
             TableField::LongText { shared_fields, .. } => &shared_fields.description,
@@ -352,14 +360,51 @@ impl TableField {
             TableField::Ai { shared_fields, .. } => &shared_fields.description,
         }
     }
-    
+
+    pub fn get_deserializer(&self) -> Option<TokenStream> {
+        match self {
+            TableField::Number {
+                number_decimal_places,
+                number_negative,
+                ..
+            } => {
+                if number_decimal_places.gt(&0) {
+                    Some(quote! {, deserialize_with = "float_or_null"})
+                } else {
+                    if *number_negative {
+                        Some(quote! {, deserialize_with = "isize_or_null"})
+                    } else {
+                        Some(quote! {, deserialize_with = "usize_or_null"})
+                    }
+                }
+            }
+            TableField::Count { .. } => Some(quote! {, deserialize_with = "usize_or_null"}),
+            TableField::AutoNumber { .. } => Some(quote! {, deserialize_with = "usize_or_null"}),
+            _ => None,
+        }
+    }
+
     pub fn get_rust_type(&self) -> &str {
         match self {
             TableField::Text { .. } => "String",
             TableField::LongText { .. } => "String",
             TableField::Url { .. } => "String",
             TableField::Email { .. } => "String",
-            TableField::Number { .. } => "isize",
+            TableField::Number {
+                number_decimal_places,
+                number_negative,
+                ..
+            } => {
+                if number_decimal_places.gt(&0) {
+                    "f64"
+                } else {
+                    if *number_negative {
+                        "isize"
+                    } else {
+                        "usize"
+                    }
+                }
+            }
             TableField::Rating { .. } => "String",
             TableField::Boolean { .. } => "bool",
             TableField::Date { .. } => "String",
@@ -374,12 +419,12 @@ impl TableField {
             TableField::MultipleSelect { .. } => "String",
             TableField::PhoneNumber { .. } => "String",
             TableField::Formula { .. } => "String",
-            TableField::Count { .. } => "String",
+            TableField::Count { .. } => "usize",
             TableField::Rollup { .. } => "String",
             TableField::Lookup { .. } => "String",
             TableField::MultipleCollaborators { .. } => "String",
             TableField::Uuid { .. } => "String",
-            TableField::AutoNumber { .. } => "isize",
+            TableField::AutoNumber { .. } => "usize",
             TableField::Password { .. } => "String",
             TableField::Ai { .. } => "String",
         }

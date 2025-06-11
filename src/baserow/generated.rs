@@ -1,9 +1,11 @@
-use std::num::ParseIntError;
-use std::str::FromStr;
-use serde::{de::Error, Deserialize, Deserializer, Serialize};
 use crate::baserow::client::{BaserowObject, Identifier};
+use serde::de::Visitor;
+use serde::{de, Deserialize, Deserializer, Serialize};
+use std::fmt;
+use std::fmt::Write;
+use std::str::FromStr;
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct companies {
+pub struct Companies {
     #[serde(rename = "field_4133237")]
     pub name: Option<String>,
     #[serde(rename = "field_4133238")]
@@ -30,10 +32,10 @@ pub struct companies {
     pub formula: Option<String>,
     #[serde(rename = "field_4459795")]
     pub customer_issues: Option<String>,
-    #[serde(rename = "field_4459796")]
-    pub count: Option<String>,
+    #[serde(rename = "field_4459796", deserialize_with = "usize_or_null")]
+    pub count: Option<usize>,
 }
-impl BaserowObject for companies {
+impl BaserowObject for Companies {
     fn get_static_table_id() -> usize {
         520298usize
     }
@@ -42,7 +44,7 @@ impl BaserowObject for companies {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.name.as_ref().map(|id| id.to_string()),
+            id: self.name.clone(),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -50,7 +52,7 @@ impl BaserowObject for companies {
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct subscriptions {
+pub struct Subscriptions {
     #[serde(rename = "field_4133311")]
     pub ty: Option<String>,
     #[serde(rename = "field_4133313")]
@@ -59,18 +61,18 @@ pub struct subscriptions {
     pub companies: Option<String>,
     #[serde(rename = "field_4134285")]
     pub prolongation_date: Option<String>,
-    #[serde(rename = "field_4134292")]
-    pub arr: Option<isize>,
-    #[serde(rename = "field_4134297")]
-    pub payment_freq: Option<isize>,
+    #[serde(rename = "field_4134292", deserialize_with = "float_or_null")]
+    pub arr: Option<f64>,
+    #[serde(rename = "field_4134297", deserialize_with = "usize_or_null")]
+    pub payment_freq: Option<usize>,
     #[serde(rename = "field_4134371")]
     pub next_payment_date: Option<String>,
-    #[serde(rename = "field_4135241")]
-    pub nodes: Option<isize>,
+    #[serde(rename = "field_4135241", deserialize_with = "usize_or_null")]
+    pub nodes: Option<usize>,
     #[serde(rename = "field_4165002")]
     pub start_date: Option<String>,
 }
-impl BaserowObject for subscriptions {
+impl BaserowObject for Subscriptions {
     fn get_static_table_id() -> usize {
         520307usize
     }
@@ -79,7 +81,7 @@ impl BaserowObject for subscriptions {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.ty.as_ref().map(|id| id.to_string()),
+            id: self.ty.clone(),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -87,7 +89,7 @@ impl BaserowObject for subscriptions {
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct jira {
+pub struct Jira {
     #[serde(rename = "field_4136052")]
     pub jira_issue_id: Option<String>,
     #[serde(rename = "field_4136053")]
@@ -115,7 +117,7 @@ pub struct jira {
     #[serde(rename = "field_4136064")]
     pub issue_url: Option<String>,
 }
-impl BaserowObject for jira {
+impl BaserowObject for Jira {
     fn get_static_table_id() -> usize {
         520652usize
     }
@@ -124,7 +126,7 @@ impl BaserowObject for jira {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.jira_issue_id.as_ref().map(|id| id.to_string()),
+            id: self.jira_issue_id.clone(),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -132,7 +134,7 @@ impl BaserowObject for jira {
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct easybill {
+pub struct Easybill {
     #[serde(rename = "field_4144714")]
     pub name: Option<String>,
     #[serde(rename = "field_4144716")]
@@ -144,7 +146,7 @@ pub struct easybill {
     #[serde(rename = "field_4167286")]
     pub companies: Option<String>,
 }
-impl BaserowObject for easybill {
+impl BaserowObject for Easybill {
     fn get_static_table_id() -> usize {
         521681usize
     }
@@ -153,7 +155,7 @@ impl BaserowObject for easybill {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.name.as_ref().map(|id| id.to_string()),
+            id: self.name.clone(),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -161,7 +163,7 @@ impl BaserowObject for easybill {
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct issues {
+pub struct Issues {
     #[serde(rename = "field_4422144")]
     pub url: Option<String>,
     #[serde(rename = "field_4422145")]
@@ -171,7 +173,7 @@ pub struct issues {
     #[serde(rename = "field_4459722")]
     pub customer_issues: Option<String>,
 }
-impl BaserowObject for issues {
+impl BaserowObject for Issues {
     fn get_static_table_id() -> usize {
         552081usize
     }
@@ -180,7 +182,7 @@ impl BaserowObject for issues {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.url.as_ref().map(|id| id.to_string()),
+            id: self.url.clone(),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -188,7 +190,7 @@ impl BaserowObject for issues {
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct users {
+pub struct Users {
     #[serde(rename = "field_4459526")]
     pub username: Option<String>,
     #[serde(rename = "field_4459527")]
@@ -196,7 +198,7 @@ pub struct users {
     #[serde(rename = "field_4459528")]
     pub password: Option<String>,
 }
-impl BaserowObject for users {
+impl BaserowObject for Users {
     fn get_static_table_id() -> usize {
         556243usize
     }
@@ -205,7 +207,7 @@ impl BaserowObject for users {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.username.as_ref().map(|id| id.to_string()),
+            id: self.username.clone(),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -213,9 +215,9 @@ impl BaserowObject for users {
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct customerIssues {
-    #[serde(rename = "field_4459691")]
-    pub bla: Option<isize>,
+pub struct CustomerIssues {
+    #[serde(rename = "field_4459691", deserialize_with = "usize_or_null")]
+    pub bla: Option<usize>,
     #[serde(rename = "field_4459692")]
     pub customer: Option<String>,
     #[serde(rename = "field_4459693")]
@@ -223,7 +225,7 @@ pub struct customerIssues {
     #[serde(rename = "field_4459723")]
     pub description: Option<String>,
 }
-impl BaserowObject for customerIssues {
+impl BaserowObject for CustomerIssues {
     fn get_static_table_id() -> usize {
         556261usize
     }
@@ -231,7 +233,7 @@ impl BaserowObject for customerIssues {
         Self::get_static_table_id()
     }
     fn get_id(&self) -> Identifier {
-        Identifier::Numeric {
+        Identifier::UnsignedNumber {
             id: self.bla,
         }
     }
@@ -240,7 +242,7 @@ impl BaserowObject for customerIssues {
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct dateDim {
+pub struct DateDim {
     #[serde(rename = "field_4520320")]
     pub day: Option<String>,
     #[serde(rename = "field_4520319")]
@@ -260,7 +262,7 @@ pub struct dateDim {
     #[serde(rename = "field_4520327")]
     pub special_day: Option<String>,
 }
-impl BaserowObject for dateDim {
+impl BaserowObject for DateDim {
     fn get_static_table_id() -> usize {
         563399usize
     }
@@ -269,7 +271,7 @@ impl BaserowObject for dateDim {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.day.as_ref().map(|id| id.to_string()),
+            id: self.day.clone(),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -277,7 +279,7 @@ impl BaserowObject for dateDim {
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct fjContentPlan {
+pub struct FjContentPlan {
     #[serde(rename = "field_4520338")]
     pub title: Option<String>,
     #[serde(rename = "field_4520345")]
@@ -295,7 +297,7 @@ pub struct fjContentPlan {
     #[serde(rename = "field_4520626")]
     pub channel: Option<String>,
 }
-impl BaserowObject for fjContentPlan {
+impl BaserowObject for FjContentPlan {
     fn get_static_table_id() -> usize {
         563401usize
     }
@@ -304,7 +306,7 @@ impl BaserowObject for fjContentPlan {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.title.as_ref().map(|id| id.to_string()),
+            id: self.title.clone(),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -312,7 +314,7 @@ impl BaserowObject for fjContentPlan {
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct fjOrder {
+pub struct FjOrder {
     #[serde(rename = "field_4536094")]
     pub ban: Option<String>,
     #[serde(rename = "field_4536095")]
@@ -348,7 +350,7 @@ pub struct fjOrder {
     #[serde(rename = "field_4536703")]
     pub coffee_cup: Option<String>,
 }
-impl BaserowObject for fjOrder {
+impl BaserowObject for FjOrder {
     fn get_static_table_id() -> usize {
         565099usize
     }
@@ -357,42 +359,35 @@ impl BaserowObject for fjOrder {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.ban.as_ref().map(|id| id.to_string()),
+            id: self.ban.clone(),
         }
     }
     fn get_table_id_field(&self) -> String {
-        
         "field_4536094".to_string()
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct offers {
-    #[serde(rename = "field_4565570", deserialize_with = "isize_from_str")]
-    pub easybill_id: Option<isize>,
+pub struct Offers {
+    #[serde(rename = "field_4565570", deserialize_with = "usize_or_null")]
+    pub easybill_id: Option<usize>,
     #[serde(rename = "field_4565571")]
     pub customer: Option<String>,
-    #[serde(rename = "field_4565572", deserialize_with = "isize_from_str")]
-    pub amount: Option<isize>,
+    #[serde(rename = "field_4565572", deserialize_with = "float_or_null")]
+    pub amount: Option<f64>,
     #[serde(rename = "field_4565632")]
     pub status: Option<Status>,
 }
 
-fn isize_from_str<'de, D>(deserializer: D) -> Result<Option<isize>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let s: &str = Deserialize::deserialize(deserializer)?;
-    // do better hex decoding than this
-    match isize::from_str(s) {
-        Ok(value) => Ok(Some(value)),
-        Err(e) => Err(D::Error::custom(e))
-    }
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag = "value")]
+pub enum Status {
+    #[serde(rename = "draft")]
+    Draft {color: String, id: usize},
+    #[serde(rename = "sent")]
+    Sent {color: String, id: usize  },
 }
 
-
-
-
-impl BaserowObject for offers {
+impl BaserowObject for Offers {
     fn get_static_table_id() -> usize {
         568215usize
     }
@@ -400,11 +395,86 @@ impl BaserowObject for offers {
         Self::get_static_table_id()
     }
     fn get_id(&self) -> Identifier {
-        Identifier::Numeric {
+        Identifier::UnsignedNumber {
             id: self.easybill_id,
         }
     }
     fn get_table_id_field(&self) -> String {
         "field_4565570".to_string()
     }
+}
+fn isize_or_null<'de, D>(deserializer: D) -> Result<Option<isize>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct IsizeOrNull;
+    impl<'de> Visitor<'de> for IsizeOrNull {
+        type Value = Option<isize>;
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("number or null")
+        }
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(Some(isize::from_str(value).unwrap()))
+        }
+        fn visit_unit<E>(self) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(None)
+        }
+    }
+    deserializer.deserialize_any(IsizeOrNull)
+}
+fn usize_or_null<'de, D>(deserializer: D) -> Result<Option<usize>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct UsizeOrNull;
+    impl<'de> Visitor<'de> for UsizeOrNull {
+        type Value = Option<usize>;
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("number or null")
+        }
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(Some(usize::from_str(value).unwrap()))
+        }
+        fn visit_unit<E>(self) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(None)
+        }
+    }
+    deserializer.deserialize_any(UsizeOrNull)
+}
+fn float_or_null<'de, D>(deserializer: D) -> Result<Option<f64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct FloatOrNull;
+    impl<'de> Visitor<'de> for FloatOrNull {
+        type Value = Option<f64>;
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("number or null")
+        }
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(Some(f64::from_str(value).unwrap()))
+        }
+        fn visit_unit<E>(self) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(None)
+        }
+    }
+    deserializer.deserialize_any(FloatOrNull)
 }

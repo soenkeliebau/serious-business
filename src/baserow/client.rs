@@ -1,3 +1,4 @@
+use std::{env, fs};
 use crate::baserow::field_types::TableField;
 use convert_case::{Case, Casing};
 use quote::__private::TokenStream;
@@ -7,11 +8,26 @@ use reqwest::Client as ReqwestClient;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use std::io::read_to_string;
 
 static LIST_TABLES_URL: &str = "https://api.baserow.io/api/database/tables/all-tables/";
 static LIST_TABLE_FIELDS_URL: &str = "https://api.baserow.io/api/database/fields/table/";
 static CREATE_RECORD_URL: &str = "https://api.baserow.io/api/database/rows/table/";
 static LIST_RECORD_URL: &str = "https://api.baserow.io/api/database/rows/table/";
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BaserowConfig {
+    token: String,
+    database: usize,
+}
+
+pub fn get_baserow_config() -> BaserowConfig {
+    serde_json::from_str::<BaserowConfig>(&fs::read_to_string("baserow_config.json").unwrap()).unwrap()
+}
+
+pub fn get_database() -> String {
+    env::var("BASEROW_DB").unwrap()
+}
 
 struct Client {
     client: ReqwestClient,
@@ -34,15 +50,19 @@ struct Table {
 }
 
 pub enum Identifier {
-    Numeric { id: Option<isize> },
+    UnsignedNumber { id: Option<usize> },
+    SignedNumber { id: Option<isize> },
+    FloatNumber { id: Option<f64> },
     Text { id: Option<String> },
 }
 
 impl Identifier {
     pub fn get_string(&self) -> Option<String> {
         match self {
-            Identifier::Numeric { id } => id.as_ref().map(|id| id.to_string()),
+            Identifier::SignedNumber { id } => id.as_ref().map(|id| id.to_string()),
             Identifier::Text { id } => id.clone(),
+            Identifier::UnsignedNumber { id } => id.as_ref().map(|id| id.to_string()),
+            Identifier::FloatNumber { id } => id.as_ref().map(|id| id.to_string()),
         }
     }
 }
@@ -214,9 +234,13 @@ impl Client {
         let tablelist = self.list_tables().await;
 
         let mut structs = quote! {
-            use serde::{Deserialize, Serialize};
-            use crate::baserow::client::{BaserowObject, Identifier};
-        };
+                    use crate::baserow::client::{BaserowObject, Identifier};
+        use serde::de::Visitor;
+        use serde::{de, Deserialize, Deserializer, Serialize};
+        use std::fmt;
+        use std::fmt::Write;
+        use std::str::FromStr;
+                };
         println!("{:?}", tablelist);
         for table in tablelist {
             // Gather information to be used during generation
@@ -226,7 +250,7 @@ impl Client {
             let primary_field_id = format!("field_{}", primary_field.get_id());
             let primary_id_function = generate_primary_id_fn(primary_field);
             let table_id = table.id;
-            
+
             // Generate code
             structs.extend(quote! {
                 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -251,6 +275,8 @@ impl Client {
                     }
             }});
         }
+        structs.extend(generate_deserializers());
+
         // Print formated code to stdout
         let syntax_tree = syn::parse_file(&structs.to_string()).unwrap();
         println!("{}", prettyplease::unparse(&syntax_tree));
@@ -270,6 +296,104 @@ fn get_primary_field(fields: Option<&Vec<TableField>>) -> &TableField {
     } else {
         panic!("got no fields to determine primary field");
     }
+}
+
+fn generate_deserializers() -> TokenStream {
+    quote! {
+        fn isize_or_null<'de, D>(deserializer: D) -> Result<Option<isize>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct IsizeOrNull;
+
+        impl<'de> Visitor<'de> for IsizeOrNull {
+            type Value = Option<isize>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("number or null")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(Some(isize::from_str(value).unwrap()))
+            }
+
+            fn visit_unit<E>(self) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(None)
+            }
+        }
+
+        deserializer.deserialize_any(IsizeOrNull)
+    }
+
+
+    fn usize_or_null<'de, D>(deserializer: D) -> Result<Option<usize>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct UsizeOrNull;
+
+        impl<'de> Visitor<'de> for UsizeOrNull {
+            type Value = Option<usize>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("number or null")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(Some(usize::from_str(value).unwrap()))
+            }
+
+            fn visit_unit<E>(self) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(None)
+            }
+        }
+
+        deserializer.deserialize_any(UsizeOrNull)
+    }
+
+    fn float_or_null<'de, D>(deserializer: D) -> Result<Option<f64>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct FloatOrNull;
+
+        impl<'de> Visitor<'de> for FloatOrNull {
+            type Value = Option<f64>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("number or null")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(Some(f64::from_str(value).unwrap()))
+            }
+
+            fn visit_unit<E>(self) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(None)
+            }
+        }
+
+        deserializer.deserialize_any(FloatOrNull)
+    }
+        }
 }
 
 fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
@@ -293,8 +417,10 @@ fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
             let field_name = format_ident!("{}", field.get_name().to_case(Case::Snake));
             let field_type = format_ident!("{}", field.get_rust_type());
             let field_id = format!("field_{}", field.get_id());
+            let deserializer = field.get_deserializer();
+
             field_stream.extend(quote! {
-                #[serde(rename = #field_id)]
+                #[serde(rename = #field_id #deserializer)]
                 pub #field_name: Option<#field_type>,
             });
         }
@@ -306,72 +432,56 @@ fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
 
 fn generate_primary_id_fn(primary_field: &TableField) -> TokenStream {
     let field_name = format_ident!("{}", primary_field.get_name());
-    if primary_field.get_rust_type().eq("String") {
-        quote! {
-        Identifier::Text { id: self.#field_name.as_ref().map(|id|id.to_string())}
-        }
-    } else {
-        quote! {
-            Identifier::Numeric { id: self.#field_name }
-        }
+
+    match primary_field.get_rust_type() {
+        "isize" => quote! {
+        Identifier::SignedNumber { id: self.#field_name}
+        },
+        "usize" => quote! {
+        Identifier::UnsignedNumber { id: self.#field_name}
+        },
+        "f64" => quote! {
+        Identifier::FloatNumber { id: self.#field_name}
+        },
+        _ => quote! {
+        Identifier::Text { id: self.#field_name.clone()}
+        },
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::baserow::client::{Client, SearchResult};
-    use crate::baserow::field_types::TableField;
+    use crate::baserow::client::{get_baserow_config, Client, SearchResult};
     use std::fs;
-    use crate::baserow::generated::offers;
+
 
     #[tokio::test]
     async fn generate_code() {
-        let client = Client::new("u35F3sNUheXm1jgWhLftPvHPg6MmtpQg");
-        client.generate_structs(217366).await;
+        let baserow_config = get_baserow_config();
+        let client = Client::new(&baserow_config.token);
+        client.generate_structs(baserow_config.database).await;
     }
 
-    /*
-    #[tokio::test]
-    async fn test_create_offer() {
-        let client = Client::new("");
-        let offer = offers {
-            easybill_id: 123,
-            customer: "testcustomer1234".to_string(),
-            amount: 12000,
-            status: "draft".to_string(),
-        };
-
-        client.create(&offer).await;
-    }
-
-    #[tokio::test]
-    async fn test_update_offer() {
-        let client = Client::new("");
-        let offer = offers {
-            easybill_id: 123,
-            customer: "changedcustomername".to_string(),
-            amount: 12000,
-            status: "sent".to_string(),
-        };
-
-        client.update(&offer).await;
-    }
-     */
     #[tokio::test]
     async fn test_list_offer() {
-        let client = Client::new("u35F3sNUheXm1jgWhLftPvHPg6MmtpQg");
-        let offers: Vec<offers> = client.list().await;
+        let baserow_config = get_baserow_config();
+        let client = Client::new(&baserow_config.token);
+        let offers: Vec<Offers> = client.list().await;
         println!("{:?}", offers);
     }
 
+    use crate::baserow::generated::Offers;
     #[test]
     fn test_deserialize_offerlist() {
         let contents = fs::read_to_string("testdata/list_offers1.json")
             .expect("Should have been able to read the file");
 
-        let json: SearchResult<offers> =
+        let json: SearchResult<Offers> =
             serde_json::from_str(&contents).expect("file should be proper JSON");
+
+        println!("{:?}", json)
     }
+
 
 
 }
