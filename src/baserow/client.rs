@@ -1,5 +1,5 @@
-use std::{env, fs};
-use crate::baserow::field_types::TableField;
+use crate::baserow::field_types::{cleanup_name, TableField};
+use convert_case::Case::Pascal;
 use convert_case::{Case, Casing};
 use quote::__private::TokenStream;
 use quote::{format_ident, quote, TokenStreamExt};
@@ -9,6 +9,7 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::io::read_to_string;
+use std::{env, fs};
 
 static LIST_TABLES_URL: &str = "https://api.baserow.io/api/database/tables/all-tables/";
 static LIST_TABLE_FIELDS_URL: &str = "https://api.baserow.io/api/database/fields/table/";
@@ -22,7 +23,8 @@ pub struct BaserowConfig {
 }
 
 pub fn get_baserow_config() -> BaserowConfig {
-    serde_json::from_str::<BaserowConfig>(&fs::read_to_string("baserow_config.json").unwrap()).unwrap()
+    serde_json::from_str::<BaserowConfig>(&fs::read_to_string("baserow_config.json").unwrap())
+        .unwrap()
 }
 
 pub fn get_database() -> String {
@@ -278,6 +280,7 @@ impl Client {
         structs.extend(generate_deserializers());
 
         // Print formated code to stdout
+        println!("{}", structs);
         let syntax_tree = syn::parse_file(&structs.to_string()).unwrap();
         println!("{}", prettyplease::unparse(&syntax_tree));
     }
@@ -397,36 +400,62 @@ fn generate_deserializers() -> TokenStream {
 }
 
 fn generate_single_select_enum(field: &TableField) -> Option<TokenStream> {
-    None
+    let mut variants = TokenStream::new();
+    match field {
+        TableField::SingleSelect {
+            shared_fields,
+            select_options,
+            single_select_default,
+        } => {
+            for option in select_options {
+                let serialized_name = &option.value;
+                let rust_variant_name = format_ident!("{}", cleanup_name(serialized_name).to_case(Pascal));
+                variants.extend(quote! {
+                    #[serde(rename = #serialized_name)]
+                    #rust_variant_name {color: String, id: usize},
+                });
+            }
+
+            let rust_name = format_ident!("{}", field.get_original_name().to_case(Pascal));
+            Some(quote! {
+                #[serde(tag = "value")]
+                pub enum #rust_name {
+                    #variants
+                }
+            })
+        }
+        _ => None,
+    }
 }
 
 fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
     if let Some(fields) = fields {
         let mut field_stream = TokenStream::new();
         for field in fields {
-            /*match field {
-                TableField::SingleSelect { shared_fields, select_options, single_select_default } => {
-                    // Need to generate an enum to represent this field later on
-                    #[derive(Serialize, Deserialize, Debug, Clone)]
-                    #[serde(tag = "value")]
-                    pub enum Status {
-                        #[serde(rename = "draft")]
-                        Draft {color: String, id: usize},
-                        #[serde(rename = "sent")]
-                        Sent {color: String, id: usize  },
-                    }
-                },
-                _ => {}
-            };*/
+            // Prepare some values that most branches of the following code will need
             let field_name = format_ident!("{}", field.get_name().to_case(Case::Snake));
             let field_type = format_ident!("{}", field.get_rust_type());
             let field_id = format!("field_{}", field.get_id());
             let deserializer = field.get_deserializer();
 
-            field_stream.extend(quote! {
-                #[serde(rename = #field_id #deserializer)]
-                pub #field_name: Option<#field_type>,
-            });
+            match field {
+                TableField::SingleSelect {
+                    shared_fields,
+                    select_options,
+                    single_select_default,
+                } => {
+                    field_stream.extend(generate_single_select_enum(&field));
+                    let field_type = format_ident!("{}", field.get_original_name().to_case(Pascal));
+                    field_stream.extend(quote! {
+                    #[serde(rename = #field_id #deserializer)]
+                    pub #field_name: Option<#field_type>,
+                        })
+                }
+                _ => field_stream.extend(quote! {
+                    #[serde(rename = #field_id #deserializer)]
+                    pub #field_name: Option<#field_type>,
+                }),
+            }
         }
         Some(field_stream)
     } else {
@@ -458,14 +487,13 @@ mod tests {
     use crate::baserow::client::{get_baserow_config, Client, SearchResult};
     use std::fs;
 
-
     #[tokio::test]
     async fn generate_code() {
         let baserow_config = get_baserow_config();
         let client = Client::new(&baserow_config.token);
         client.generate_structs(baserow_config.database).await;
     }
-
+/*
     #[tokio::test]
     async fn test_list_offer() {
         let baserow_config = get_baserow_config();
@@ -484,8 +512,5 @@ mod tests {
             serde_json::from_str(&contents).expect("file should be proper JSON");
 
         println!("{:?}", json)
-    }
-
-
-
+    }*/
 }

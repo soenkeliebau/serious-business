@@ -243,14 +243,22 @@ pub struct Collaborator {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SelectOption {
-    id: isize,
-    value: String,
-    color: String,
+    pub id: isize,
+    pub value: String,
+    pub color: String,
+}
+
+pub fn cleanup_name(dirty_name: &str)-> String {
+    let first_stage = dirty_name.replace(&['(', ')', ',', '\"', '.', ';', ':', '\'', '/'][..], "");
+    // Check if starts with number, that is not a legal rust identifier
+    if first_stage[0..1].parse::<u8>().is_ok() {
+        format!("a{}", first_stage)
+    } else {first_stage}
 }
 
 impl TableField {
     fn clean_name(dirty_name: &str) -> String {
-        let clean_name = dirty_name.replace(&['(', ')', ',', '\"', '.', ';', ':', '\''][..], "");
+        let clean_name = cleanup_name(dirty_name);
         let clean_name = clean_name.to_case(Case::Snake);
         if clean_name.eq("type") {
             "ty".to_string()
