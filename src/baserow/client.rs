@@ -73,7 +73,7 @@ impl Table {
     }
 
     pub fn get_struct_name(&self) -> String {
-        self.name.to_case(Case::UpperCamel)
+        self.name.to_case(Case::Pascal)
     }
 }
 
@@ -395,6 +395,8 @@ fn generate_deserializers() -> TokenStream {
     }
         }
 }
+
+fn generate_single_select_enum(field: &TableField) -> Option<TokenStream>
 
 fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
     if let Some(fields) = fields {
