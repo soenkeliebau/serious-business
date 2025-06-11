@@ -386,8 +386,8 @@ impl TableField {
                 }
 
                 let rust_name =
-                    cleanup_name(&format!("{}{}", table_name, self.get_original_name()));
-                let rust_name = format_ident!("{}", rust_name.to_case(Pascal));
+                    cleanup_name(&format!("{}{}", table_name.to_case(Pascal), self.get_original_name().to_case(Pascal)));
+                let rust_name = format_ident!("{}", rust_name);
                 Some(quote! {
                     #[derive(Serialize, Deserialize, Debug, Clone)]
                     #[serde(tag = "value")]
@@ -423,51 +423,51 @@ impl TableField {
         }
     }
 
-    pub fn get_rust_type(&self, table_name: &str) -> &str {
+    pub fn get_rust_type(&self, table_name: &str) -> String {
         match self {
-            TableField::Text { .. } => "String",
-            TableField::LongText { .. } => "String",
-            TableField::Url { .. } => "String",
-            TableField::Email { .. } => "String",
+            TableField::Text { .. } => "String".to_string(),
+            TableField::LongText { .. } => "String".to_string(),
+            TableField::Url { .. } => "String".to_string(),
+            TableField::Email { .. } => "String".to_string(),
             TableField::Number {
                 number_decimal_places,
                 number_negative,
                 ..
             } => {
                 if number_decimal_places.gt(&0) {
-                    "f64"
+                    "f64".to_string()
                 } else {
                     if *number_negative {
-                        "isize"
+                        "isize".to_string()
                     } else {
-                        "usize"
+                        "usize".to_string()
                     }
                 }
             }
-            TableField::Rating { .. } => "String",
-            TableField::Boolean { .. } => "bool",
-            TableField::Date { .. } => "String",
-            TableField::LastModified { .. } => "String",
-            TableField::LastModifiedBy { .. } => "String",
-            TableField::CreatedOn { .. } => "String",
-            TableField::CreatedBy { .. } => "String",
-            TableField::Duration { .. } => "String",
-            TableField::LinkRow { .. } => "String",
-            TableField::File { .. } => "String",
+            TableField::Rating { .. } => "String".to_string(),
+            TableField::Boolean { .. } => "bool".to_string(),
+            TableField::Date { .. } => "String".to_string(),
+            TableField::LastModified { .. } => "String".to_string(),
+            TableField::LastModifiedBy { .. } => "String".to_string(),
+            TableField::CreatedOn { .. } => "String".to_string(),
+            TableField::CreatedBy { .. } => "String".to_string(),
+            TableField::Duration { .. } => "String".to_string(),
+            TableField::LinkRow { .. } => "String".to_string(),
+            TableField::File { .. } => "String".to_string(),
             TableField::SingleSelect { .. } => {
                 cleanup_name(&format!("{}{}", table_name.to_case(Pascal), self.get_original_name().to_case(Pascal)))
             },
-            TableField::MultipleSelect { .. } => "String",
-            TableField::PhoneNumber { .. } => "String",
-            TableField::Formula { .. } => "String",
-            TableField::Count { .. } => "usize",
-            TableField::Rollup { .. } => "String",
-            TableField::Lookup { .. } => "String",
-            TableField::MultipleCollaborators { .. } => "String",
-            TableField::Uuid { .. } => "String",
-            TableField::AutoNumber { .. } => "usize",
-            TableField::Password { .. } => "String",
-            TableField::Ai { .. } => "String",
+            TableField::MultipleSelect { .. } => "String".to_string(),
+            TableField::PhoneNumber { .. } => "String".to_string(),
+            TableField::Formula { .. } => "String".to_string(),
+            TableField::Count { .. } => "usize".to_string(),
+            TableField::Rollup { .. } => "String".to_string(),
+            TableField::Lookup { .. } => "String".to_string(),
+            TableField::MultipleCollaborators { .. } => "String".to_string(),
+            TableField::Uuid { .. } => "String".to_string(),
+            TableField::AutoNumber { .. } => "usize".to_string(),
+            TableField::Password { .. } => "String".to_string(),
+            TableField::Ai { .. } => "String".to_string(),
         }
     }
 

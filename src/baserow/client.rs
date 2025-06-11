@@ -243,16 +243,15 @@ impl Client {
         use std::fmt::Write;
         use std::str::FromStr;
                 };
-        println!("{:?}", tablelist);
         for table in tablelist {
             // Gather information to be used during generation
             let struct_name = format_ident!("{}", table.get_struct_name());
-            let fields = generate_fields(table.fields.as_ref());
+            let fields = generate_fields(table.fields.as_ref(),&table.name);
             let extra_structs =
                 generate_extra_structs(table.fields.as_ref(), &table.get_struct_name());
             let primary_field = get_primary_field(table.fields.as_ref());
             let primary_field_id = format!("field_{}", primary_field.get_id());
-            let primary_id_function = generate_primary_id_fn(primary_field);
+            let primary_id_function = generate_primary_id_fn(primary_field, &table.name);
             let table_id = table.id;
 
             // Generate code
@@ -449,13 +448,13 @@ fn generate_extra_structs(
     }
 }
 
-fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
+fn generate_fields(fields: Option<&Vec<TableField>>, table_name: &str) -> Option<TokenStream> {
     if let Some(fields) = fields {
         let mut field_stream = TokenStream::new();
         for field in fields {
             // Prepare some values that most branches of the following code will need
             let field_name = format_ident!("{}", field.get_name().to_case(Case::Snake));
-            let field_type = format_ident!("{}", field.get_rust_type());
+            let field_type = format_ident!("{}", field.get_rust_type(table_name));
             let field_id = format!("field_{}", field.get_id());
             let deserializer = field.get_deserializer();
             field_stream.extend(quote! {
@@ -469,10 +468,10 @@ fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
     }
 }
 
-fn generate_primary_id_fn(primary_field: &TableField) -> TokenStream {
+fn generate_primary_id_fn(primary_field: &TableField, table_name: &str) -> TokenStream {
     let field_name = format_ident!("{}", primary_field.get_name());
 
-    match primary_field.get_rust_type() {
+    match primary_field.get_rust_type(table_name).as_ref() {
         "isize" => quote! {
         Identifier::SignedNumber { id: self.#field_name}
         },
