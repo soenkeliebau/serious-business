@@ -1,9 +1,8 @@
-use convert_case::{Case, Casing};
 use convert_case::Case::Pascal;
+use convert_case::{Case, Casing};
 use quote::__private::TokenStream;
 use quote::{format_ident, quote};
 use serde::{Deserialize, Serialize};
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SharedFields {
@@ -374,15 +373,11 @@ impl TableField {
 
     pub fn get_extra_structs(&self, table_name: &str) -> Option<TokenStream> {
         match self {
-            TableField::SingleSelect {
-                shared_fields,
-                select_options,
-                single_select_default,
-            } => {
+            TableField::SingleSelect { select_options, .. } => {
                 let mut variants = TokenStream::new();
                 for option in select_options {
                     let serialized_name = &option.value;
-                    let rust_variant_name = 
+                    let rust_variant_name =
                         format_ident!("{}", cleanup_name(serialized_name).to_case(Pascal));
                     variants.extend(quote! {
                         #[serde(rename = #serialized_name)]
@@ -390,7 +385,8 @@ impl TableField {
                     });
                 }
 
-                let rust_name = cleanup_name(&format!("{}{}", table_name, self.get_original_name()));
+                let rust_name =
+                    cleanup_name(&format!("{}{}", table_name, self.get_original_name()));
                 let rust_name = format_ident!("{}", rust_name.to_case(Pascal));
                 Some(quote! {
                     #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -427,7 +423,7 @@ impl TableField {
         }
     }
 
-    pub fn get_rust_type(&self) -> &str {
+    pub fn get_rust_type(&self, table_name: &str) -> &str {
         match self {
             TableField::Text { .. } => "String",
             TableField::LongText { .. } => "String",
@@ -458,7 +454,9 @@ impl TableField {
             TableField::Duration { .. } => "String",
             TableField::LinkRow { .. } => "String",
             TableField::File { .. } => "String",
-            TableField::SingleSelect { .. } => "String",
+            TableField::SingleSelect { .. } => {
+                cleanup_name(&format!("{}{}", table_name.to_case(Pascal), self.get_original_name().to_case(Pascal)))
+            },
             TableField::MultipleSelect { .. } => "String",
             TableField::PhoneNumber { .. } => "String",
             TableField::Formula { .. } => "String",
