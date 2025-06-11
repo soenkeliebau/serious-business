@@ -1,8 +1,9 @@
 use convert_case::{Case, Casing};
+use convert_case::Case::Pascal;
 use quote::__private::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote};
 use serde::{Deserialize, Serialize};
-use textwrap::wrap;
+
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SharedFields {
@@ -248,12 +249,14 @@ pub struct SelectOption {
     pub color: String,
 }
 
-pub fn cleanup_name(dirty_name: &str)-> String {
+pub fn cleanup_name(dirty_name: &str) -> String {
     let first_stage = dirty_name.replace(&['(', ')', ',', '\"', '.', ';', ':', '\'', '/'][..], "");
     // Check if starts with number, that is not a legal rust identifier
     if first_stage[0..1].parse::<u8>().is_ok() {
         format!("a{}", first_stage)
-    } else {first_stage}
+    } else {
+        first_stage
+    }
 }
 
 impl TableField {
@@ -366,6 +369,38 @@ impl TableField {
             TableField::AutoNumber { shared_fields, .. } => &shared_fields.description,
             TableField::Password { shared_fields, .. } => &shared_fields.description,
             TableField::Ai { shared_fields, .. } => &shared_fields.description,
+        }
+    }
+
+    pub fn get_extra_structs(&self, table_name: &str) -> Option<TokenStream> {
+        match self {
+            TableField::SingleSelect {
+                shared_fields,
+                select_options,
+                single_select_default,
+            } => {
+                let mut variants = TokenStream::new();
+                for option in select_options {
+                    let serialized_name = &option.value;
+                    let rust_variant_name = 
+                        format_ident!("{}", cleanup_name(serialized_name).to_case(Pascal));
+                    variants.extend(quote! {
+                        #[serde(rename = #serialized_name)]
+                        #rust_variant_name {color: String, id: usize},
+                    });
+                }
+
+                let rust_name = cleanup_name(&format!("{}{}", table_name, self.get_original_name()));
+                let rust_name = format_ident!("{}", rust_name.to_case(Pascal));
+                Some(quote! {
+                    #[derive(Serialize, Deserialize, Debug, Clone)]
+                    #[serde(tag = "value")]
+                    pub enum #rust_name {
+                        #variants
+                    }
+                })
+            }
+            _ => None,
         }
     }
 

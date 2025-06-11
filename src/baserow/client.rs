@@ -248,6 +248,7 @@ impl Client {
             // Gather information to be used during generation
             let struct_name = format_ident!("{}", table.get_struct_name());
             let fields = generate_fields(table.fields.as_ref());
+            let extra_structs = generate_extra_structs(table.fields.as_ref(), &table.get_struct_name());
             let primary_field = get_primary_field(table.fields.as_ref());
             let primary_field_id = format!("field_{}", primary_field.get_id());
             let primary_id_function = generate_primary_id_fn(primary_field);
@@ -259,6 +260,9 @@ impl Client {
                 pub struct #struct_name {
                     #fields
                 }
+                
+                #extra_structs
+                
                 impl BaserowObject for #struct_name {
                     fn get_static_table_id() -> usize {
                         #table_id
@@ -280,7 +284,6 @@ impl Client {
         structs.extend(generate_deserializers());
 
         // Print formated code to stdout
-        println!("{}", structs);
         let syntax_tree = syn::parse_file(&structs.to_string()).unwrap();
         println!("{}", prettyplease::unparse(&syntax_tree));
     }
@@ -418,6 +421,7 @@ fn generate_single_select_enum(field: &TableField) -> Option<TokenStream> {
 
             let rust_name = format_ident!("{}", field.get_original_name().to_case(Pascal));
             Some(quote! {
+                #[derive(Serialize, Deserialize, Debug, Clone)]
                 #[serde(tag = "value")]
                 pub enum #rust_name {
                     #variants
@@ -425,6 +429,18 @@ fn generate_single_select_enum(field: &TableField) -> Option<TokenStream> {
             })
         }
         _ => None,
+    }
+}
+
+fn generate_extra_structs(fields: Option<&Vec<TableField>>, table_name: &str) -> Option<TokenStream> {
+    if let Some(fields) = fields {
+        let mut extra_structs_stream = TokenStream::new();
+        for field in fields {
+            extra_structs_stream.extend(field.get_extra_structs(table_name));
+        };
+        Some(extra_structs_stream)
+    } else {
+        None
     }
 }
 
@@ -444,7 +460,6 @@ fn generate_fields(fields: Option<&Vec<TableField>>) -> Option<TokenStream> {
                     select_options,
                     single_select_default,
                 } => {
-                    field_stream.extend(generate_single_select_enum(&field));
                     let field_type = format_ident!("{}", field.get_original_name().to_case(Pascal));
                     field_stream.extend(quote! {
                     #[serde(rename = #field_id #deserializer)]
