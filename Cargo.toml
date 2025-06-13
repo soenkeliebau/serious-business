@@ -12,4 +12,6 @@ quote = "1.0"
 convert_case = "0.8"
 syn = "2.0.101"
 prettyplease = "0.2.33"
-textwrap = "0.16"
+strum = "0.27"
+strum_macros = "0.27.1"
+baserow-client = { git = "https://github.com/soenkeliebau/baserow-rs.git", branch= "main"}

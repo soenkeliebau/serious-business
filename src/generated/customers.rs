@@ -1,9 +1,11 @@
-use crate::baserow::client::{BaserowObject, Identifier};
 use serde::de::Visitor;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::fmt;
 use std::fmt::Write;
 use std::str::FromStr;
+use std::string::ToString;
+use baserow_client::client::{BaserowObject, Identifier};
+use strum_macros::{Display, EnumString};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Companies {
     #[serde(rename = "field_4133237")]
@@ -35,14 +37,17 @@ pub struct Companies {
     #[serde(rename = "field_4459796", deserialize_with = "usize_or_null")]
     pub count: Option<usize>,
 }
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 #[serde(tag = "value")]
 pub enum CompaniesState {
     #[serde(rename = "new")]
+    #[strum(serialize = "new")]
     New { color: String, id: usize },
     #[serde(rename = "offer in progress")]
+    #[strum(serialize = "offer in progress")]
     OfferInProgress { color: String, id: usize },
     #[serde(rename = "customer")]
+    #[strum(serialize = "customer")]
     Customer { color: String, id: usize },
 }
 impl BaserowObject for Companies {
@@ -54,7 +59,12 @@ impl BaserowObject for Companies {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.name.clone(),
+            id: Some(
+                match &self.name {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -82,15 +92,18 @@ pub struct Subscriptions {
     #[serde(rename = "field_4165002")]
     pub start_date: Option<String>,
 }
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 #[serde(tag = "value")]
 pub enum SubscriptionsType {
     #[serde(rename = "Business Subscription")]
+    #[strum(serialize = "Business Subscription")]
     BusinessSubscription { color: String, id: usize },
     #[serde(rename = "Basic Subscription")]
+    #[strum(serialize = "Basic Subscription")]
     BasicSubscription { color: String, id: usize },
     #[serde(rename = "24/7 Support")]
-    A247Support { color: String, id: usize },
+    #[strum(serialize = "24/7 Support")]
+    a247Support { color: String, id: usize },
 }
 impl BaserowObject for Subscriptions {
     fn get_static_table_id() -> usize {
@@ -101,7 +114,12 @@ impl BaserowObject for Subscriptions {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.ty.clone(),
+            id: Some(
+                match &self.ty {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -146,7 +164,12 @@ impl BaserowObject for Jira {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.jira_issue_id.clone(),
+            id: Some(
+                match &self.jira_issue_id {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -175,7 +198,12 @@ impl BaserowObject for Easybill {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.name.clone(),
+            id: Some(
+                match &self.name {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -202,7 +230,12 @@ impl BaserowObject for Issues {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.url.clone(),
+            id: Some(
+                match &self.url {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -227,7 +260,12 @@ impl BaserowObject for Users {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.username.clone(),
+            id: Some(
+                match &self.username {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -291,7 +329,12 @@ impl BaserowObject for DateDim {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.day.clone(),
+            id: Some(
+                match &self.day {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -317,31 +360,43 @@ pub struct FjContentPlan {
     #[serde(rename = "field_4520626")]
     pub channel: Option<FjContentPlanChannel>,
 }
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 #[serde(tag = "value")]
 pub enum FjContentPlanStatus {
     #[serde(rename = "in work")]
+    #[strum(serialize = "in work")]
     InWork { color: String, id: usize },
     #[serde(rename = "in feedback")]
+    #[strum(serialize = "in feedback")]
     InFeedback { color: String, id: usize },
     #[serde(rename = "in sign-off")]
+    #[strum(serialize = "in sign-off")]
     InSignOff { color: String, id: usize },
     #[serde(rename = "published")]
+    #[strum(serialize = "published")]
     Published { color: String, id: usize },
     #[serde(rename = "cancelled")]
+    #[strum(serialize = "cancelled")]
     Cancelled { color: String, id: usize },
 }
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 #[serde(tag = "value")]
 pub enum FjContentPlanChannel {
     #[serde(rename = "LinkedIn post")]
+    #[strum(serialize = "LinkedIn post")]
     LinkedInPost { color: String, id: usize },
     #[serde(rename = "LinkedIn ad")]
+    #[strum(serialize = "LinkedIn ad")]
     LinkedInAd { color: String, id: usize },
     #[serde(rename = "Blog post")]
+    #[strum(serialize = "Blog post")]
     BlogPost { color: String, id: usize },
     #[serde(rename = "Website content")]
+    #[strum(serialize = "Website content")]
     WebsiteContent { color: String, id: usize },
+    #[serde(rename = "Case Study")]
+    #[strum(serialize = "Case Study")]
+    CaseStudy { color: String, id: usize },
 }
 impl BaserowObject for FjContentPlan {
     fn get_static_table_id() -> usize {
@@ -352,7 +407,12 @@ impl BaserowObject for FjContentPlan {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.title.clone(),
+            id: Some(
+                match &self.title {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -396,12 +456,14 @@ pub struct FjOrder {
     #[serde(rename = "field_4536703")]
     pub coffee_cup: Option<String>,
 }
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 #[serde(tag = "value")]
 pub enum FjOrderType {
     #[serde(rename = "Subscription")]
+    #[strum(serialize = "Subscription")]
     Subscription { color: String, id: usize },
     #[serde(rename = "Other")]
+    #[strum(serialize = "Other")]
     Other { color: String, id: usize },
 }
 impl BaserowObject for FjOrder {
@@ -413,7 +475,12 @@ impl BaserowObject for FjOrder {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: self.ban.clone(),
+            id: Some(
+                match &self.ban {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
@@ -431,20 +498,26 @@ pub struct Offers {
     #[serde(rename = "field_4565632")]
     pub status: Option<OffersStatus>,
 }
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 #[serde(tag = "value")]
 pub enum OffersStatus {
     #[serde(rename = "draft")]
+    #[strum(serialize = "draft")]
     Draft { color: String, id: usize },
     #[serde(rename = "review")]
+    #[strum(serialize = "review")]
     Review { color: String, id: usize },
     #[serde(rename = "approved")]
+    #[strum(serialize = "approved")]
     Approved { color: String, id: usize },
     #[serde(rename = "sent")]
+    #[strum(serialize = "sent")]
     Sent { color: String, id: usize },
     #[serde(rename = "expired")]
+    #[strum(serialize = "expired")]
     Expired { color: String, id: usize },
     #[serde(rename = "accepted")]
+    #[strum(serialize = "accepted")]
     Accepted { color: String, id: usize },
 }
 impl BaserowObject for Offers {
