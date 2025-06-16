@@ -1,0 +1,134 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "order": "3.00000000000000000000",
+      "field_4133237": "Company A",
+      "field_4133238": "",
+      "field_4133239": false,
+      "field_4133334": [
+        {
+          "id": 1,
+          "value": "Business Subscription",
+          "order": "1.00000000000000000000"
+        },
+        {
+          "id": 2,
+          "value": "Basic Subscription",
+          "order": "2.00000000000000000000"
+        },
+        {
+          "id": 6,
+          "value": "24/7 Support",
+          "order": "4.00000000000000000000"
+        }
+      ],
+      "field_4135947": "130000",
+      "field_4135948": "https://drive.google.com/file/d/1VTkqvpNDfPEgjhGGW0e5uAxvDYYgtyMs/view?usp=drive_link",
+      "field_4136227": [
+        {
+          "id": 101439,
+          "name": "Sönke Liebau"
+        }
+      ],
+      "field_4136228": [
+        {
+          "id": 101464,
+          "name": "Fabian"
+        }
+      ],
+      "field_4140645": {
+        "id": 3170007,
+        "value": "new",
+        "color": "light-yellow"
+      },
+      "field_4142010": "Innovative tech solutions driving efficiency and growth for modern businesses.",
+      "field_4167285": [
+        {
+          "id": 35,
+          "value": "Sirona Dental Systems GmbH",
+          "order": "7.00000000000000000000"
+        }
+      ],
+      "field_4459573": "Super High",
+      "field_4459795": [
+        {
+          "id": 3,
+          "value": "3",
+          "order": "3.00000000000000000000"
+        }
+      ],
+      "field_4459796": "1"
+    },
+    {
+      "id": 2,
+      "order": "4.00000000000000000000",
+      "field_4133237": "Company B",
+      "field_4133238": "",
+      "field_4133239": false,
+      "field_4133334": [
+        {
+          "id": 5,
+          "value": "Business Subscription",
+          "order": "3.00000000000000000000"
+        }
+      ],
+      "field_4135947": "30000",
+      "field_4135948": "",
+      "field_4136227": [
+        {
+          "id": 101464,
+          "name": "Fabian"
+        }
+      ],
+      "field_4136228": [
+        {
+          "id": 101439,
+          "name": "Sönke Liebau"
+        }
+      ],
+      "field_4140645": {
+        "id": 3170008,
+        "value": "offer in progress",
+        "color": "light-gray"
+      },
+      "field_4142010": null,
+      "field_4167285": [],
+      "field_4459573": "High",
+      "field_4459795": [],
+      "field_4459796": "0"
+    },
+    {
+      "id": 5,
+      "order": "5.00000000000000000000",
+      "field_4133237": "Company C",
+      "field_4133238": "",
+      "field_4133239": false,
+      "field_4133334": [
+        {
+          "id": 5,
+          "value": "Business Subscription",
+          "order": "3.00000000000000000000"
+        },
+        {
+          "id": 6,
+          "value": "24/7 Support",
+          "order": "4.00000000000000000000"
+        }
+      ],
+      "field_4135947": "130000",
+      "field_4135948": "",
+      "field_4136227": [],
+      "field_4136228": [],
+      "field_4140645": null,
+      "field_4142010": null,
+      "field_4167285": [],
+      "field_4459573": "Super High",
+      "field_4459795": [],
+      "field_4459796": "0"
+    }
+  ]
+}

@@ -1,11 +1,12 @@
+use baserow_client::client::{BaserowObject, Identifier};
 use serde::de::Visitor;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::fmt;
 use std::fmt::Write;
 use std::str::FromStr;
 use std::string::ToString;
-use baserow_client::client::{BaserowObject, Identifier};
 use strum_macros::{Display, EnumString};
+use chrono::{DateTime, Local};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Companies {
     #[serde(rename = "field_4133237")]
@@ -15,7 +16,7 @@ pub struct Companies {
     #[serde(rename = "field_4133239")]
     pub active: Option<bool>,
     #[serde(rename = "field_4133334")]
-    pub subscriptions: Option<String>,
+    pub subscriptions: Option<CompaniesType>,
     #[serde(rename = "field_4135947")]
     pub arr: Option<String>,
     #[serde(rename = "field_4135948")]
@@ -33,9 +34,22 @@ pub struct Companies {
     #[serde(rename = "field_4459573")]
     pub formula: Option<String>,
     #[serde(rename = "field_4459795")]
-    pub customer_issues: Option<String>,
+    pub customer_issues: Option<usize>,
     #[serde(rename = "field_4459796", deserialize_with = "usize_or_null")]
     pub count: Option<usize>,
+}
+#[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
+#[serde(tag = "value")]
+pub enum CompaniesType {
+    #[serde(rename = "Business Subscription")]
+    #[strum(serialize = "Business Subscription")]
+    BusinessSubscription { color: String, id: usize },
+    #[serde(rename = "Basic Subscription")]
+    #[strum(serialize = "Basic Subscription")]
+    BasicSubscription { color: String, id: usize },
+    #[serde(rename = "24/7 Support")]
+    #[strum(serialize = "24/7 Support")]
+    a247Support { color: String, id: usize },
 }
 #[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 #[serde(tag = "value")]
@@ -80,7 +94,7 @@ pub struct Subscriptions {
     #[serde(rename = "field_4133333")]
     pub companies: Option<String>,
     #[serde(rename = "field_4134285")]
-    pub prolongation_date: Option<String>,
+    pub prolongation_date: Option<DateTime<Local>>,
     #[serde(rename = "field_4134292", deserialize_with = "float_or_null")]
     pub arr: Option<f64>,
     #[serde(rename = "field_4134297", deserialize_with = "usize_or_null")]
@@ -90,7 +104,7 @@ pub struct Subscriptions {
     #[serde(rename = "field_4135241", deserialize_with = "usize_or_null")]
     pub nodes: Option<usize>,
     #[serde(rename = "field_4165002")]
-    pub start_date: Option<String>,
+    pub start_date: Option<DateTime<Local>>,
 }
 #[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 #[serde(tag = "value")]
@@ -141,13 +155,13 @@ pub struct Jira {
     #[serde(rename = "field_4136057")]
     pub labels: Option<String>,
     #[serde(rename = "field_4136058")]
-    pub created_date: Option<String>,
+    pub created_date: Option<DateTime<Local>>,
     #[serde(rename = "field_4136059")]
-    pub updated_date: Option<String>,
+    pub updated_date: Option<DateTime<Local>>,
     #[serde(rename = "field_4136060")]
-    pub resolved_date: Option<String>,
+    pub resolved_date: Option<DateTime<Local>>,
     #[serde(rename = "field_4136061")]
-    pub due_date: Option<String>,
+    pub due_date: Option<DateTime<Local>>,
     #[serde(rename = "field_4136062")]
     pub state: Option<String>,
     #[serde(rename = "field_4136063")]
@@ -219,7 +233,7 @@ pub struct Issues {
     #[serde(rename = "field_4422148")]
     pub companies: Option<String>,
     #[serde(rename = "field_4459722")]
-    pub customer_issues: Option<String>,
+    pub customer_issues: Option<usize>,
 }
 impl BaserowObject for Issues {
     fn get_static_table_id() -> usize {
@@ -302,7 +316,7 @@ impl BaserowObject for CustomerIssues {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DateDim {
     #[serde(rename = "field_4520320")]
-    pub day: Option<String>,
+    pub day: Option<DateTime<Local>>,
     #[serde(rename = "field_4520319")]
     pub day_1: Option<String>,
     #[serde(rename = "field_4520321")]
@@ -348,7 +362,7 @@ pub struct FjContentPlan {
     #[serde(rename = "field_4520345")]
     pub status: Option<FjContentPlanStatus>,
     #[serde(rename = "field_4520348")]
-    pub release_date: Option<String>,
+    pub release_date: Option<DateTime<Local>>,
     #[serde(rename = "field_4520356")]
     pub g_drive_doc_url: Option<String>,
     #[serde(rename = "field_4520357")]
@@ -438,11 +452,11 @@ pub struct FjOrder {
     #[serde(rename = "field_4536101")]
     pub status: Option<String>,
     #[serde(rename = "field_4536102")]
-    pub buchungsstart: Option<String>,
+    pub buchungsstart: Option<DateTime<Local>>,
     #[serde(rename = "field_4536103")]
-    pub buchungsende: Option<String>,
+    pub buchungsende: Option<DateTime<Local>>,
     #[serde(rename = "field_4536104")]
-    pub erstelldatum: Option<String>,
+    pub erstelldatum: Option<DateTime<Local>>,
     #[serde(rename = "field_4536105")]
     pub erstellt_von: Option<String>,
     #[serde(rename = "field_4536545")]

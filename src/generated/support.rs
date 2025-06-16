@@ -6,6 +6,7 @@ use std::fmt::Write;
 use std::str::FromStr;
 use std::string::ToString;
 use strum_macros::{Display, EnumString};
+use chrono::{DateTime, Local};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Schedule {
     #[serde(rename = "field_4598182")]
@@ -13,9 +14,9 @@ pub struct Schedule {
     #[serde(rename = "field_4598183")]
     pub oncall: Option<ScheduleOncall>,
     #[serde(rename = "field_4598188")]
-    pub start: Option<String>,
+    pub start: Option<DateTime<Local>>,
     #[serde(rename = "field_4598189")]
-    pub end: Option<String>,
+    pub end: Option<DateTime<Local>>,
     #[serde(rename = "field_4598228")]
     pub escalation: Option<ScheduleEscalation>,
 }
@@ -48,10 +49,12 @@ impl BaserowObject for Schedule {
     }
     fn get_id(&self) -> Identifier {
         Identifier::Text {
-            id: Some(match &self.name {
-                None => "".to_string(),
-                Some(name) => name.to_string(),
-            }),
+            id: Some(
+                match &self.name {
+                    None => "".to_string(),
+                    Some(name) => name.to_string(),
+                },
+            ),
         }
     }
     fn get_table_id_field(&self) -> String {
