@@ -18,8 +18,10 @@ pub struct Document {
     pub items: Vec<DocumentItem>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Customer {
+    pub id: usize,
+    #[serde(rename = "display_name")]
     pub company_name: String,
 }
 

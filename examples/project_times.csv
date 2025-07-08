@@ -1,0 +1,65 @@
+dys_date,total_time,billable_time,pma_person_code,comment
+2024-12-12,"0,5","0,5",SIWE,Kafka mit Kerberos und Active Directory getestet
+2025-02-20,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-02-06,"0,75","0,75",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-02-27,"0,5","0,5",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-03-24,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-03-21,1,1,SIWE,"Fragen zur LDAP-Server-Konfiguration im User-Info-Fetcher beantwortet (E-Mail von Harald Wilkes vom 21.03.2025 zum Thema ""OPA-Regeln debuggen"")"
+2025-02-13,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-03-06,"2,5","2,5",SIWE,"Intermediate-Zertifikat gemäß den Vorgaben von AirPlus getestet (E-Mail von Christian Hoffmann vom 06.03.2025 zum Thema ""AirPlus Intermediate CAs für dynamische Zertifikate""); Fragen zur Anpassung der Volume-Größen im Kafka-Cluster beantwortet (E-Mail von Harald Wilkes vom 06.03.2025 zum Thema ""PVCs vergrößern""); Bereitstellung eines angepassten Images für den Secret-Operator; Synchronisationsmeeting zur Einrichtung von Kafka"
+2025-02-17,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-01-23,"2,25","2,25",SIWE,Cluster-Konfiguration auf SDP 24.11.1 angepasst
+2025-02-24,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-02-21,"1,25","1,25",SIWE,"Fragen zum OPA-Kafka-Plugin beantwortet (E-Mail von Harald Wilkes vom 21.02.2025 zum Thema ""Stackable Kafka SIEM Audit-Logging"")"
+2025-01-22,3,3,SIWE,Offene Fragen geklärt
+2025-01-30,"3,25","3,25",SIWE,Meeting mit AirPlus; Spezifikation für den Kafka-Exporter erstellt
+2025-01-31,"5,25","5,25",SIWE,Probleme mit dem Kerberos-Keytab im Kafka-Exporter analysiert (secret-operator#559); Fragen zum externen Zugriff beantwortet
+2024-12-11,"1,5","1,5",SIWE,Kafka mit Kerberos und Active Directory getestet
+2025-03-17,"2,5","2,5",SIWE,"Meeting zur Konfiguration des DNS-Alias für den Kafka-Bootstrap-Service (Einladung von Harald Wilkes zum Thema ""Stackable @AirPlus Daily Focus: Kafka - SPN/Kerberos"")"
+2025-01-28,3,3,SIWE,Vorbereitung und Meeting mit AirPlus
+2025-03-20,1,1,SIWE,Debugging von OPA-Regeln beschrieben (Anfrage von Harald Wilkes im Synchronisationsmeeting)
+2025-03-17,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-03-17,3,3,SIWE,"Verwendung eines DNS-Alias für den Kafka-Bootstrap-Service geprüft (E-Mail von Harald Wilkes vom 14.03.2025 zum Thema ""DNS Alias auf LB"")"
+2025-01-20,6,6,SIWE,Cluster-Konfiguration für die AirPlus überarbeitet; Meeting
+2025-03-17,"0,75","0,75",SIWE,"Verwendung eines DNS-Alias für den Kafka-Bootstrap-Service geprüft (E-Mail von Harald Wilkes vom 14.03.2025 zum Thema ""DNS Alias auf LB"")"
+2025-01-21,"6,5","6,5",SIWE,Kafka-Cluster in die DEV-Umgebung installiert
+2025-03-10,"1,25","1,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka; Anpassung der Certificate-Lifetimes beschrieben (Anfrage von Harald Wilkes im Synchronisationsmeeting)
+2025-03-03,"0,5","0,5",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2024-12-12,"0,5","0,5",SIWE,Kafka mit Kerberos und Active Directory getestet
+2025-02-10,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-02-28,"0,5","0,5",SIWE,"Verwendung einer Intermediate-CA im Secret-Operator beschrieben (E-Mail von Harald Wilkes vom 28.02.2025 zum Thema ""Stackable TLS certs"")"
+2025-03-20,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-01-23,2,2,SIWE,Meeting mit AirPlus; Kafka mit Kerberos und LoadBalancer getestet (secret-operator#552)
+2025-02-03,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-05-15,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-06-12,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-05-26,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-04-28,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-04-17,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-04-17,5,5,SIWE,"OPA-Rego-Rules getestet, optimiert und Benchmarks durchgeführt (E-Mail von Harald Wilkes vom 14.04.2025 zum Thema ""OPA Rules Kafka""); Filterung interner Kafka-Logs geprüft (Anfrage von Harald Wilkes im Synchronisationsmeeting vom 10.04.2025); Umstellung von Vector auf die Log Ingestion API in Azure Monitor geprüft (E-Mail von Kaya Kupferschmidt vom 11.04.2025 zum Thema ""Vector Issue & Branch für 'Log Ingestion API'""); Vorschlag zur Erweiterung des UserInfoFetchers um benutzerdefinierte Abfragen erstellt (opa-operator#702)"
+2025-04-16,"2,75","2,75",SIWE,"OPA-Rego-Rules getestet, optimiert und Benchmarks durchgeführt (E-Mail von Harald Wilkes vom 14.04.2025 zum Thema ""OPA Rules Kafka"")"
+2025-05-05,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-04-16,"0,75","0,75",SIWE,"OPA-Rego-Rules getestet, optimiert und Benchmarks durchgeführt (E-Mail von Harald Wilkes vom 14.04.2025 zum Thema ""OPA Rules Kafka"")"
+2025-04-07,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-05-19,"0,5","0,5",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-06-13,"0,75","0,75",SIWE,"Meeting zur Einrichtung des Kafka-Mirror-Clusters (Einladung von Harald Wilkes zum Thema ""Setup Mirror Cluster"")"
+2025-04-14,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-03-28,"4,5","4,5",SIWE,Cluster-Spezifikationen an SDP 25.3 angepasst; gleichzeitiger Zugriff auf Kafka per IP und DNS-Namen getestet; Verwendung von KRaft statt ZooKeeper getestet (Anfrage von Harald Wilkes im Synchronisationsmeeting vom 27.03.2025)
+2025-04-03,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-03-31,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-03-27,"0,5","0,5",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-04-01,"0,25","0,25",SIWE,"Anpassung der Ressourcen für Vector-Container beschrieben (E-Mail von Harald Wilkes vom 01.04.2025 zum Thema ""Vector Memory"")"
+2025-04-01,1,1,SIWE,Abfrage von Benutzerinformationen per sAMAccountName analysiert (Anfrage von Harald Wilkes im Synchronisationsmeeting vom 31.03.2025)
+2025-04-24,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-05-08,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-05-22,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-04-10,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-06-06,"0,5","0,5",SIWE,"Frage zur Provisionierung von Kerberos-Tickets beantwortet (E-Mail von Ahmadreza Ibrahimzadeh vom 06.06.2025 zum Thema ""Re: OPA Rules Kafka"")"
+2025-06-05,"0,25","0,25",SIWE,Synchronisationsmeeting zur Einrichtung von Kafka
+2025-01-21,1,1,ANKE,Scripts set-up in Dev.
+2025-01-21,"2,5","2,5",ANKE,Scripts set-up in dev.
+2025-02-06,"0,5","0,5",ANKE,airplus daily
+2025-01-23,"0,5","0,5",ANKE,Team daily
+2025-01-21,1,1,ANKE,Scripts setup in dev.
+2025-01-28,2,2,ANKE,Dev install meeting
+2025-01-16,"0,5","0,5",ANKE,Daily - Airplus
