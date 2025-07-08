@@ -115,11 +115,3 @@ impl CoffeeCup {
         Ok(())
     }
 }
-
-
-/*
-curl --request GET \
-  --url https://api.coffeecupapp.com/v1/timeentries \
-  --header 'Authorization: Bearer 2b80e7b35cf11fff10f65020f27e8e215f093a39' \
-  --header 'User-Agent: insomnia/11.2.0'
- */
