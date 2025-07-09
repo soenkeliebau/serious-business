@@ -58,7 +58,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_times() {
-        let client = Bdwh::new("admin", "");
+        let client = Bdwh::new("admin", "Elated-Putt-Aerobics7-Showy-Stem");
         let cc_client = CoffeeCup::new("").unwrap();
 
         let mut test = client.get_entries_for_ban("001105").await.unwrap();
