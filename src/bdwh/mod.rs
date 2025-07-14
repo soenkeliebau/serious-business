@@ -59,7 +59,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_times() {
         let client = Bdwh::new("admin", "Elated-Putt-Aerobics7-Showy-Stem");
-        let cc_client = CoffeeCup::new("").unwrap();
+        let cc_client = CoffeeCup::new("").await.unwrap();
 
         let mut test = client.get_entries_for_ban("001105").await.unwrap();
 
@@ -70,4 +70,6 @@ mod tests {
             println!("Successfully created entry: {}: {}", cc_entry.timeEntry.day, cc_entry.timeEntry.duration)
         }
     }
+
+
 }

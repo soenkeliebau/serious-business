@@ -1,13 +1,34 @@
+use crate::coffeecup::structs::{Project, Tag, TimeEntryWrapper, TrackingType, ValidationStatus};
+use chrono::Duration;
+use oauth2::basic::{
+    BasicClient, BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse,
+    BasicTokenResponse, BasicTokenType,
+};
+use oauth2::{
+    AccessToken, AuthUrl, Client, ClientId, ClientSecret, EmptyExtraTokenFields, EndpointNotSet,
+    EndpointSet, ResourceOwnerPassword, ResourceOwnerUsername, StandardRevocableToken,
+    StandardTokenResponse, TokenResponse, TokenUrl,
+};
+use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::{Client as ReqwestClient, Url};
+use serde::{Deserialize, Serialize};
+use snafu::{ResultExt, Snafu};
 use std::str::FromStr;
 use std::sync::LazyLock;
-use http::header::{ACCEPT, CONTENT_TYPE};
-use reqwest::{Client as ReqwestClient, Url};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
-use snafu::{ResultExt, Snafu};
-use crate::coffeecup::structs::TimeEntryWrapper;
 
-static TIMEENTRY_URL: LazyLock<Url> = LazyLock::new(|| {
-    Url::from_str("https://api.coffeecupapp.com/v1/timeentries").unwrap()
+static TIMEENTRY_URL: LazyLock<Url> =
+    LazyLock::new(|| Url::from_str("https://api.coffeecupapp.com/v1/timeentries").unwrap());
+static TAGS_URL: LazyLock<Url> =
+    LazyLock::new(|| Url::from_str("https://api.coffeecup.app/v1/tags").unwrap());
+static TAGASSIGNMENTS_URL: LazyLock<Url> =
+    LazyLock::new(|| Url::from_str("https://api.coffeecup.app/v1/tagassignments").unwrap());
+static AUTH_URL: LazyLock<Url> =
+    LazyLock::new(|| Url::from_str("https://api.coffeecup.app/v1/tagassignments").unwrap());
+static TOKEN_URL: LazyLock<Url> = LazyLock::new(|| {
+    Url::from_str(
+        "https://stackable.coffeecup.app/oauth2/token?companyurl=https://stackable.coffeecup.app",
+    )
+    .unwrap()
 });
 
 #[derive(Snafu, Debug)]
@@ -30,11 +51,106 @@ pub enum Error {
         msg: String,
         url: String,
     },
+    #[snafu(display("Found no tag with name [{name}]"))]
+    NoTag { name: String },
+    #[snafu(display("Found too many tags for tag name [{name}] - found {} tags"))]
+    TooManyTags { name: String, amount: usize },
+    #[snafu(display("Failed to parse {url_type} url: {source}"))]
+    ParseUrl {
+        url_type: String,
+        source: oauth2::url::ParseError,
+    },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct TagAssigment {
+    id: usize,
+    record: usize,
+    model: String,
+    tag: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct TimeEntry {
+    createdAt: String,
+    updatedAt: String,
+    id: usize,
+    trackingType: TrackingType,
+    startTime: Option<String>,
+    endTime: Option<String>,
+    day: String,
+    sorting: usize,
+    duration: usize,
+    durationRounded: usize,
+    durationRoundedOverride: Option<usize>,
+    estimate: Option<usize>,
+    running: bool,
+    comment: String,
+    hourlyRate: f64,
+    billedAt: Option<String>,
+    billable: bool,
+    validationStatus: ValidationStatus,
+    wasRejected: bool,
+    firstSubmissionTime: Option<String>,
+    approvedOn: Option<String>,
+    externalId: Option<String>,
+    team: usize,
+    task: usize,
+    project: usize,
+    user: usize,
+    invoice: usize,
+    approvedBy: Option<usize>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ListTagAssignmentResponse {
+    meta: ListResponseMeta,
+    #[serde(rename = "tagAssignments")]
+    tag_assignments: Vec<TagAssigment>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ListTimeEntryResponse {
+    meta: ListResponseMeta,
+    #[serde(rename = "timeEntries")]
+    time_entries: Vec<TimeEntry>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListResponseMeta {
+    skip: isize,
+    limit: isize,
+    total: isize,
+    sort: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListTagResponse {
+    pub tags: Vec<Tag>,
+    pub meta: ListResponseMeta,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListProjectResponse {
+    pub tags: Vec<Project>,
+    pub meta: ListResponseMeta,
 }
 
 pub struct CoffeeCup {
     client: reqwest::Client,
-    
+    oauth_client: Client<
+        BasicErrorResponse,
+        BasicTokenResponse,
+        BasicTokenIntrospectionResponse,
+        StandardRevocableToken,
+        BasicRevocationErrorResponse,
+        EndpointNotSet,
+        EndpointNotSet,
+        EndpointNotSet,
+        EndpointNotSet,
+        EndpointSet,
+    >,
+    token: StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
 }
 
 impl CoffeeCup {
@@ -60,8 +176,59 @@ impl CoffeeCup {
         })
     }
 
+
+
      */
-    pub fn new(token: &str) -> Result<Self, Error> {
+    pub async fn new_with_password(username: &str, password: &str) -> Result<Self, Error> {
+        let client = BasicClient::new(ClientId::new("client_id".to_string()))
+            .set_client_secret(ClientSecret::new("client_secret".to_string()))
+            .set_token_uri(TokenUrl::new(TOKEN_URL.to_string()).unwrap());
+
+        let http_client = reqwest::ClientBuilder::new()
+            // Following redirects opens the client up to SSRF vulnerabilities.
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .expect("Client should build");
+
+        let token_result = client
+            .exchange_password(
+                &ResourceOwnerUsername::new(username.to_string()),
+                &ResourceOwnerPassword::new(password.to_string()),
+            )
+            .request_async(&http_client)
+            .await
+            .unwrap();
+        println!("{:?}", token_result);
+        Ok(Self {
+            client: http_client,
+            oauth_client: client,
+            token: token_result,
+        })
+    }
+
+    pub async fn get_token(&mut self) -> Result<String, Error> {
+        if let Some(expiry) = self.token.expires_in() {
+            if expiry < std::time::Duration::from_secs(60*60*24) {
+                println!("Token expired, refreshing..");
+                // Ticket is about to expire
+                let test = self
+                    .oauth_client
+                    .exchange_refresh_token(self.token.refresh_token().unwrap())
+                    .request_async(&self.client)
+                    .await
+                    .unwrap();
+                self.token = test;
+                println!("refresh done!")
+            }
+        } else {
+            // not sure ....
+        }
+        Ok(self.token.access_token().clone().into_secret())
+    }
+
+    pub async fn new(token: &str) -> Result<Self, Error> {
+        Self::new_with_password("", "").await
+        /*
         // Build default headers to be included with every request later on
         let mut default_headers = HeaderMap::new();
         default_headers.insert(
@@ -84,24 +251,130 @@ impl CoffeeCup {
                 .context(ReqwestSnafu {
                     msg: "build client",
                 })?,
+            oauth_client: BasicClient::new(ClientId::new("client_id".to_string()))
+            .set_client_secret(ClientSecret::new("client_secret".to_string()))
+            .set_token_uri(TokenUrl::new(TOKEN_URL.to_string()).unwrap());,
+            token: (),
         })
-    }
-    
-    pub async fn create_timeentry(&self, entry: &TimeEntryWrapper) -> Result<(), Error>{
 
+         */
+    }
+
+    async fn get_tag_assigments(
+        &self,
+        tag_id: usize,
+        model: &str,
+    ) -> Result<Vec<TagAssigment>, Error> {
         let request = self
             .client
-            .post(TIMEENTRY_URL.as_ref())
+            .get(TAGASSIGNMENTS_URL.as_ref())
             .header(CONTENT_TYPE, "application/json")
-            .body(serde_json::to_string(&entry).context(SerializeRequestSnafu {
-                msg: format!("{:?}", entry),
-            })?)
+            .build()
+            .context(ReqwestSnafu {
+                msg: "build list tag assignments request",
+            })?;
+
+        let response = self
+            .client
+            .execute(request)
+            .await
+            .context(ReqwestWithUrlSnafu {
+                msg: "send create request",
+                url: TIMEENTRY_URL.as_ref(),
+            })?
+            .json::<ListTagAssignmentResponse>()
+            .await
+            .unwrap();
+
+        Ok(response
+            .tag_assignments
+            .into_iter()
+            .filter(|assignment| assignment.model.eq(model) && assignment.tag.eq(&tag_id))
+            .collect())
+    }
+
+    pub async fn get_project_ids_by_tag(&mut self, tag: &str) -> Result<Vec<usize>, Error> {
+        let tag_id = self.find_tag_by_name(tag).await?;
+
+        let projects = self.get_tag_assigments(tag_id, "project").await.unwrap();
+        println!("Found projects: {:?}", projects);
+        Ok(projects
+            .iter()
+            .map(|assignment| assignment.record)
+            .collect())
+    }
+
+    pub async fn get_timeentries(
+        &self,
+        team: usize,
+        projects: Option<Vec<usize>>,
+    ) -> Result<Vec<TimeEntry>, Error> {
+        Ok(Vec::new())
+    }
+
+    async fn find_tag_by_name(&mut self, tag_name: &str) -> Result<usize, Error> {
+        let request = self
+            .client
+            .get(TAGS_URL.as_ref())
+            .header(CONTENT_TYPE, "application/json")
+            .bearer_auth(&self.get_token().await.unwrap())
             .build()
             .context(ReqwestSnafu {
                 msg: "build create request",
             })?;
 
-        println!("Request\n{:?}", request);
+        let response = self
+            .client
+            .execute(request)
+            .await
+            .context(ReqwestWithUrlSnafu {
+                msg: "send create request",
+                url: TIMEENTRY_URL.as_ref(),
+            })?
+            .json::<ListTagResponse>()
+            .await
+            .unwrap();
+
+        // Find tag matching the name we are looking for
+        let mut matching_tags: Vec<&Tag> = response
+            .tags
+            .iter()
+            .filter(|tag| tag.label.eq(tag_name))
+            .collect();
+        if let Some(found_tag) = matching_tags.pop() {
+            if matching_tags.is_empty() {
+                // We took the only tag that was found - success!
+                Ok(found_tag.id)
+            } else {
+                // We found more than one tag, not good!
+                Err(Error::TooManyTags {
+                    name: tag_name.to_string(),
+                    amount: matching_tags.len() + 1,
+                })
+            }
+        } else {
+            // We found no tags, also not good!
+            Err(Error::NoTag {
+                name: tag_name.to_string(),
+            })
+        }
+    }
+
+    pub async fn create_timeentry(&self, entry: &TimeEntryWrapper) -> Result<(), Error> {
+        let request = self
+            .client
+            .post(TIMEENTRY_URL.as_ref())
+            .header(CONTENT_TYPE, "application/json")
+            .body(
+                serde_json::to_string(&entry).context(SerializeRequestSnafu {
+                    msg: format!("{:?}", entry),
+                })?,
+            )
+            .build()
+            .context(ReqwestSnafu {
+                msg: "build create request",
+            })?;
+
         let response = self
             .client
             .execute(request)
@@ -111,7 +384,48 @@ impl CoffeeCup {
                 url: TIMEENTRY_URL.as_ref(),
             })?;
 
-        println!("{:?}", response);
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::bdwh::Bdwh;
+    use crate::coffeecup::client::CoffeeCup;
+    use crate::coffeecup::structs::TimeEntryWrapper;
+    use baserow_client::client::Client;
+
+    #[tokio::test]
+    async fn test_get_tag() {
+        let mut cc_client = CoffeeCup::new("519834cd47c02c47e16c14f1ca0522f643956d95")
+            .await
+            .unwrap();
+
+        assert_eq!(cc_client.find_tag_by_name("de").await.unwrap(), 5502);
+    }
+
+    #[tokio::test]
+    async fn test_get_project_by_tag() {
+        let mut cc_client = CoffeeCup::new("519834cd47c02c47e16c14f1ca0522f643956d95")
+            .await
+            .unwrap();
+
+        let tag_id = cc_client.find_tag_by_name("de").await.unwrap();
+
+        //let test = cc_client.get_project_by_tag("de").await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_async() {
+        let mut cc_client = CoffeeCup::new_with_password(
+            "soenke.liebau@stackable.tech",
+            "Rift-Safari7-Untidy-Setup-Subpanel-Lifting",
+        )
+        .await
+        .unwrap();
+
+        println!("test");
+        let tag_id = cc_client.find_tag_by_name("de").await.unwrap();
+        println!("{:?}", tag_id)
     }
 }
