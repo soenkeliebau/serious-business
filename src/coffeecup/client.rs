@@ -1,4 +1,4 @@
-use crate::coffeecup::structs::{Project, Tag, TimeEntryWrapper, TrackingType, ValidationStatus};
+use crate::coffeecup::structs::{Customer, Project, Tag, Task, TaskAssignment, TimeEntryWrapper, TrackingType, ValidationStatus};
 use chrono::Duration;
 use oauth2::basic::{
     BasicClient, BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse,
@@ -11,6 +11,7 @@ use oauth2::{
 };
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{Client as ReqwestClient, Url};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use snafu::{ResultExt, Snafu};
 use std::str::FromStr;
@@ -24,6 +25,14 @@ static TAGASSIGNMENTS_URL: LazyLock<Url> =
     LazyLock::new(|| Url::from_str("https://api.coffeecup.app/v1/tagassignments").unwrap());
 static AUTH_URL: LazyLock<Url> =
     LazyLock::new(|| Url::from_str("https://api.coffeecup.app/v1/tagassignments").unwrap());
+static TASKS_URL: LazyLock<Url> =
+    LazyLock::new(|| Url::from_str("https://api.coffeecup.app/v1/tasks").unwrap());
+static TASKASSIGNMENTS_URL: LazyLock<Url> =
+    LazyLock::new(|| Url::from_str("https://api.coffeecup.app/v1/taskassignments").unwrap());
+static PROJECTS_URL: LazyLock<Url> =
+    LazyLock::new(|| Url::from_str("https://api.coffeecup.app/v1/projects").unwrap());
+static CUSTOMER_URL: LazyLock<Url> =
+    LazyLock::new(|| Url::from_str("https://api.coffeecup.app/v1/clients").unwrap());
 static TOKEN_URL: LazyLock<Url> = LazyLock::new(|| {
     Url::from_str(
         "https://stackable.coffeecup.app/oauth2/token?companyurl=https://stackable.coffeecup.app",
@@ -110,6 +119,13 @@ struct ListTagAssignmentResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+struct ListTaskAssignmentResponse {
+    meta: ListResponseMeta,
+    #[serde(rename = "taskAssignments")]
+    taskAssignments: Vec<TaskAssignment>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 struct ListTimeEntryResponse {
     meta: ListResponseMeta,
     #[serde(rename = "timeEntries")]
@@ -131,8 +147,35 @@ pub struct ListTagResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ListTaskResponse {
+    pub tasks: Vec<Task>,
+    pub meta: ListResponseMeta,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListResponse<T>
+where
+    T: ProvidesPayloadFieldName,
+{
+    #[serde(rename = "T::payload_field_name()")]
+    pub payload: Vec<T>,
+    pub meta: ListResponseMeta,
+}
+
+pub trait ProvidesPayloadFieldName {
+    fn payload_field_name() -> &'static str;
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListProjectResponse {
-    pub tags: Vec<Project>,
+    pub projects: Vec<Project>,
+    pub meta: ListResponseMeta,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListCustomerResponse {
+    #[serde(rename="clients")]
+    pub customers: Vec<Customer>,
     pub meta: ListResponseMeta,
 }
 
@@ -208,7 +251,7 @@ impl CoffeeCup {
 
     pub async fn get_token(&mut self) -> Result<String, Error> {
         if let Some(expiry) = self.token.expires_in() {
-            if expiry < std::time::Duration::from_secs(60*60*24) {
+            if expiry < std::time::Duration::from_secs(60 * 60 * 24) {
                 println!("Token expired, refreshing..");
                 // Ticket is about to expire
                 let test = self
@@ -258,6 +301,136 @@ impl CoffeeCup {
         })
 
          */
+    }
+
+    pub async fn get_my_projects(&mut self) -> Result<Vec<Project>, Error> {
+        let mut projects = self.list_projects().await.unwrap();
+        let tasks = self.list_tasks().await.unwrap();
+        println!("Tasks: {:?}", tasks);
+        let task_assignments = self.list_task_assignments().await.unwrap();
+
+
+        let mut result: Vec<Project> = Vec::new();
+        for mut project in projects {
+            let task_ids:Vec<usize> = task_assignments
+                .iter()
+                .filter(|task_assignment| task_assignment.project.eq(&project.id))
+                .map(|task_assignment: &TaskAssignment| task_assignment.task)
+                .collect();
+            println!("Task ids for project {:?}: {:?}", project.name, task_ids);
+            let tasks: Vec<Task> = tasks.iter().filter(|task| task_ids.contains(&task.id)).map(|task| task.clone()).collect();
+            println!("Tasks for project {:?}: {:?}", project.name, tasks);
+            let mut new_project = project.clone();
+            new_project.tasks = Some(tasks);
+            result.push(new_project);
+
+        }
+        println!("Projects: {:?}", result);
+
+        Ok(result)
+    }
+
+    pub async fn list_projects(&mut self) -> Result<Vec<Project>, Error> {
+        let request = self
+            .client
+            .get(PROJECTS_URL.as_ref())
+            .header(CONTENT_TYPE, "application/json")
+            .bearer_auth(&mut self.get_token().await?)
+            .build()
+            .context(ReqwestSnafu {
+                msg: "build list projects request",
+            })?;
+
+        let response = self
+            .client
+            .execute(request)
+            .await
+            .context(ReqwestWithUrlSnafu {
+                msg: "send list projects request",
+                url: PROJECTS_URL.as_ref(),
+            })?;
+        println!("{:?}", response);
+        Ok(response
+            .json::<ListProjectResponse>()
+            .await
+            .unwrap()
+            .projects)
+    }
+
+    pub async fn list_customer(&mut self) -> Result<Vec<Customer>, Error> {
+        let request = self
+            .client
+            .get(CUSTOMER_URL.as_ref())
+            .header(CONTENT_TYPE, "application/json")
+            .bearer_auth(&mut self.get_token().await?)
+            .build()
+            .context(ReqwestSnafu {
+                msg: "build list customer request",
+            })?;
+
+        let response = self
+            .client
+            .execute(request)
+            .await
+            .context(ReqwestWithUrlSnafu {
+                msg: "send list customer request",
+                url: CUSTOMER_URL.as_ref(),
+            })?;
+        println!("{:?}", response);
+        Ok(response
+            .json::<ListCustomerResponse>()
+            .await
+            .unwrap()
+            .customers)
+    }
+    async fn list_tasks(&mut self) -> Result<Vec<Task>, Error> {
+        let request = self
+            .client
+            .get(TASKS_URL.as_ref())
+            .header(CONTENT_TYPE, "application/json")
+            .bearer_auth(&mut self.get_token().await?)
+            .build()
+            .context(ReqwestSnafu {
+                msg: "build list tasks request",
+            })?;
+
+        let response = self
+            .client
+            .execute(request)
+            .await
+            .context(ReqwestWithUrlSnafu {
+                msg: "send list tasks request",
+                url: TIMEENTRY_URL.as_ref(),
+            })?
+            .json::<ListTaskResponse>()
+            .await
+            .unwrap();
+        Ok(response.tasks)
+    }
+
+    async fn list_task_assignments(&mut self) -> Result<Vec<TaskAssignment>, Error> {
+        let request = self
+            .client
+            .get(TASKASSIGNMENTS_URL.as_ref())
+            .header(CONTENT_TYPE, "application/json")
+            .bearer_auth(&mut self.get_token().await?)
+            .build()
+            .context(ReqwestSnafu {
+                msg: "build list task assignments request",
+            })?;
+
+        let response = self
+            .client
+            .execute(request)
+            .await
+            .context(ReqwestWithUrlSnafu {
+                msg: "send list task assignments request",
+                url: TASKASSIGNMENTS_URL.as_ref(),
+            })?
+            .json::<ListTaskAssignmentResponse>()
+            .await
+            .unwrap();
+        Ok(response.taskAssignments)
     }
 
     async fn get_tag_assigments(

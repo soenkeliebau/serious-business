@@ -1,14 +1,14 @@
+use crate::bdwh::structs::TimeEntry as BdwhTimeEntry;
 use chrono::{NaiveDate, NaiveTime};
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString};
-use crate::bdwh::structs::TimeEntry as BdwhTimeEntry;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tag {
     pub id: usize,
     pub label: String,
     pub description: Option<String>,
-    #[serde(rename="type")]
+    #[serde(rename = "type")]
     pub tag_type: Option<String>,
     pub status: isize,
     pub category: Option<String>,
@@ -16,7 +16,7 @@ pub struct Tag {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TimeEntryWrapper {
-    pub timeEntry: TimeEntry
+    pub timeEntry: TimeEntry,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,26 +46,25 @@ pub struct TimeEntry {
     pub invoice: Option<String>,
     pub approvedBy: Option<bool>,
     pub sorting: Option<isize>,
-    pub durationRoundedOverride: Option<usize>
-
+    pub durationRoundedOverride: Option<usize>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Project {
-    pub createdAt: String,
-    pub updatedAt: String,
+    pub createdAt: Option<String>,
+    pub updatedAt: Option<String>,
     pub id: usize,
     pub status: usize,
     pub name: String,
     pub comment: Option<String>,
-    pub code: String,
+    pub code: Option<String>,
     pub billBy: usize,
     pub budgetBy: usize,
     pub hourlyRate: f64,
     pub budget: f64,
     pub budgetHours: f64,
-    pub startDate: String,
-    pub endDate: String,
+    pub startDate: Option<String>,
+    pub endDate: Option<String>,
     pub completedAt: Option<String>,
     pub roundingType: isize,
     pub roundingAmount: Option<isize>,
@@ -83,27 +82,52 @@ pub struct Project {
     pub customField9: Option<String>,
     pub customField10: Option<String>,
     pub externalId: Option<String>,
-    pub rating: usize,
-    pub client: usize,
+    pub rating: Option<usize>,
+    pub client: Option<usize>,
     pub color: usize,
-    pub projectParent: Option<usize>
-    
+    pub projectParent: Option<usize>,
+    pub tasks: Option<Vec<Task>>,
+}
+
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Customer {
+    pub id: usize,
+    pub status: usize,
+    pub name: String,
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TaskAssignment {
+    pub task: usize,
+    pub project: usize,
+    pub id: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Task {
+    pub id: usize,
+    pub label: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 pub enum TrackingType {
-    WORK
+    WORK,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, EnumString, Display)]
 pub enum ValidationStatus {
     NOTSUBMITTED,
-    APPROVED
+    APPROVED,
 }
 
 impl From<BdwhTimeEntry> for TimeEntryWrapper {
     fn from(value: BdwhTimeEntry) -> Self {
-        Self { timeEntry: value.into() }
+        Self {
+            timeEntry: value.into(),
+        }
     }
 }
 
@@ -111,7 +135,7 @@ impl From<BdwhTimeEntry> for TimeEntry {
     fn from(value: BdwhTimeEntry) -> Self {
         let duration = value.total_time * 3600.0;
         let duration = duration.floor() as usize;
-        Self{
+        Self {
             trackingType: TrackingType::WORK,
             validationStatus: ValidationStatus::APPROVED,
             day: value.date,
@@ -137,11 +161,7 @@ impl From<BdwhTimeEntry> for TimeEntry {
             invoice: None,
             approvedBy: None,
             sorting: Some(1),
-            durationRoundedOverride: None
+            durationRoundedOverride: None,
         }
     }
 }
-
-
-
-
