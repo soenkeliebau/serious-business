@@ -66,7 +66,7 @@ mod tests {
         for entry in test {
             let cc_entry: crate::coffeecup::structs::TimeEntryWrapper = entry.into();
             println!("{}", serde_json::to_string(&cc_entry).unwrap());
-            //cc_client.create_timeentry(&cc_entry).await.unwrap();
+            cc_client.create_timeentry(&cc_entry).await.unwrap();
             println!("Successfully created entry: {}: {}", cc_entry.timeEntry.day, cc_entry.timeEntry.duration)
         }
     }
